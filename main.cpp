@@ -1,8 +1,22 @@
 #include <iostream>
 #include "ray.h"
 
+bool HitSphere(const Vector& center, float radius, const Ray& ray)
+{
+    Vector oc = ray.Origin() - center;
+    float a = Dot(ray.Direction(), ray.Direction());
+    float b = 2.0f * Dot(oc, ray.Direction());
+    float c = Dot(oc, oc) - radius*radius;
+
+    float discriminant = b*b - 4*a*c;
+    return discriminant > 0.0f;
+}
+
 Vector Color(const Ray& ray)
 {
+    if (HitSphere(Vector(0, 0, -1), 0.5f, ray))
+        return Vector(1, 0, 0);
+
     Vector unitDirection = UnitVector(ray.Direction());
     float t = 0.5f * (unitDirection.Y() + 1.0f);
     return (1.0f - t)*Vector(1.0f, 1.0f, 1.0f) + t*Vector(0.5f, 0.7f, 1.0f);
