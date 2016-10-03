@@ -3,6 +3,9 @@
   <ItemGroup>
     <ClInclude Include="vec3.h" />
     <ClInclude Include="ray.h" />
+    <ClInclude Include="hitable.h" />
+    <ClInclude Include="sphere.h" />
+    <ClInclude Include="hitable_list.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />

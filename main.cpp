@@ -1,21 +1,13 @@
 #include <iostream>
-#include "ray.h"
+#include <limits>
+#include "sphere.h"
+#include "hitable_list.h"
 
-bool HitSphere(const Vector& center, float radius, const Ray& ray)
+Vector Color(const Ray& ray, Hitable* world)
 {
-    Vector oc = ray.Origin() - center;
-    float a = Dot(ray.Direction(), ray.Direction());
-    float b = 2.0f * Dot(oc, ray.Direction());
-    float c = Dot(oc, oc) - radius*radius;
-
-    float discriminant = b*b - 4*a*c;
-    return discriminant > 0.0f;
-}
-
-Vector Color(const Ray& ray)
-{
-    if (HitSphere(Vector(0, 0, -1), 0.5f, ray))
-        return Vector(1, 0, 0);
+    HitRecord hitRecord;
+    if (world->Hit(ray, 0.0, std::numeric_limits<float>::max(), hitRecord))
+        return 0.5*(hitRecord.normal + Vector(1, 1, 1));
 
     Vector unitDirection = UnitVector(ray.Direction());
     float t = 0.5f * (unitDirection.Y() + 1.0f);
@@ -33,15 +25,21 @@ int main()
     Vector vertical(0.0f, 2.0f, 0.0f);
     Vector origin(0.0f, 0.0f, 0.0f);
 
+    Sphere sphere1(Vector(0, 0, -1), 0.5f);
+    Sphere sphere2(Vector(0, -100.5f, -1), 100);
+    Hitable* list[2] = { &sphere1, &sphere2 };
+
+    HitableList world(list, 2);
+
     for (int j = ny - 1; j >= 0; j--)
     {
         for (int i = 0; i < nx; i++)
         {
             float u = float(i) / float(nx);
             float v = float(j) / float(ny);
-
             Ray ray(origin, lowerLeftCorner + u*horizontal + v*vertical);
-            Vector color = Color(ray);
+
+            Vector color = Color(ray, &world);
 
             int ir = static_cast<int>(255.99 * color[0]);
             int ig = static_cast<int>(255.99 * color[1]);
