@@ -6,8 +6,11 @@
     <ClInclude Include="hitable.h" />
     <ClInclude Include="sphere.h" />
     <ClInclude Include="hitable_list.h" />
+    <ClInclude Include="camera.h" />
+    <ClInclude Include="random.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="random.cpp" />
   </ItemGroup>
 </Project>
