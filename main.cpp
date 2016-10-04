@@ -1,6 +1,8 @@
+#include <algorithm>
 #include <iostream>
 #include <limits>
 #include "camera.h"
+#include "material.h"
 #include "random.h"
 #include "sphere.h"
 #include "hitable_list.h"
@@ -15,13 +17,61 @@ Vector RandomPointInUnitSphere()
     return p;
 }
 
-Vector Color(const Ray& ray, Hitable* world)
+class Lambertian : public Material
 {
-    HitRecord hitRecord;
-    if (world->Hit(ray, 0.0, std::numeric_limits<float>::max(), hitRecord))
+public:
+    Lambertian(const Vector& albedo) : albedo(albedo) {}
+
+    bool Scatter(const Ray& ray, const HitRecord& hitRecord,
+        Vector& attenuation, Ray& scatteredRay) const override
     {
         Vector target = hitRecord.p + hitRecord.normal + RandomPointInUnitSphere();
-        return 0.5f * Color(Ray(hitRecord.p, target - hitRecord.p), world);
+        scatteredRay = Ray(hitRecord.p, target - hitRecord.p);
+        attenuation = albedo;
+        return true;
+    }
+
+    Vector albedo;
+};
+
+Vector Reflect(const Vector& v, const Vector& normal)
+{
+    return v - 2.0f*Dot(v, normal)*normal;
+}
+
+class Metal : public Material
+{
+public:
+    Metal(const Vector& albedo, float fuzz) : albedo(albedo)
+    {
+        this->fuzz = std::min(fuzz, 1.0f);
+    }
+
+    bool Scatter(const Ray& ray, const HitRecord& hitRecord,
+        Vector& attenuation, Ray& scatteredRay) const override
+    {
+        Vector reflected = Reflect(UnitVector(ray.Direction()), hitRecord.normal);
+        scatteredRay = Ray(hitRecord.p, reflected + fuzz * RandomPointInUnitSphere());
+        attenuation = albedo;
+        return Dot(scatteredRay.Direction(), hitRecord.normal) > 0.0f;
+    }
+
+    Vector albedo;
+    float fuzz;
+};
+
+Vector Color(const Ray& ray, Hitable* world, int depth)
+{
+    HitRecord hitRecord;
+    if (world->Hit(ray, 0.001f, std::numeric_limits<float>::max(), hitRecord))
+    {
+        Ray scattered;
+        Vector attenuation;
+        if (depth < 50 && hitRecord.material->Scatter(ray, hitRecord, attenuation, scattered))
+        {
+            return attenuation * Color(scattered, world, depth + 1);
+        }
+        return Vector(0, 0, 0);
     }
 
     Vector unitDirection = UnitVector(ray.Direction());
@@ -37,14 +87,15 @@ int main()
 
     std::cout << "P3\n" << nx << " " << ny << "\n255\n";
 
+    Sphere sphere1(Vector(0, 0, -1), 0.5f, new Lambertian(Vector(0.8f, 0.3f, 0.3f)));
+    Sphere sphere2(Vector(0, -100.5f, -1), 100, new Lambertian(Vector(0.8f, 0.8f, 0.0f)));
+    Sphere sphere3(Vector(-1, 0, -1), 0.5f, new Metal(Vector(0.8f, 0.8f, 0.8f), 0.3f));
+    Sphere sphere4(Vector(1, 0, -1), 0.5f, new Metal(Vector(0.8f, 0.6f, 0.2f), 1.0f));
+
+    Hitable* list[4] = { &sphere1, &sphere2, &sphere3, &sphere4 };
+    HitableList world(list, 4);
+
     Camera camera;
-
-    Sphere sphere1(Vector(0, 0, -1), 0.5f);
-    Sphere sphere2(Vector(0, -100.5f, -1), 100);
-    Hitable* list[2] = { &sphere1, &sphere2 };
-
-    HitableList world(list, 2);
-
     for (int j = ny - 1; j >= 0; j--)
     {
         for (int i = 0; i < nx; i++)
@@ -56,7 +107,7 @@ int main()
                 float v = (float(j) + RandomFloat()) / float(ny);
 
                 Ray ray = camera.GetRay(u, v);
-                color += Color(ray, &world);
+                color += Color(ray, &world, 0);
             }
             color /= float(ns);
             color = Vector(sqrt(color[0]), sqrt(color[1]), sqrt(color[2]));

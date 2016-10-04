@@ -6,12 +6,14 @@ class Sphere : public Hitable
 {
 public:
     Sphere() {}
-    Sphere(const Vector& center, float radius) : center(center), radius(radius) {}
+    Sphere(const Vector& center, float radius, Material* material)
+        : center(center), radius(radius), material(material) {}
 
     bool Hit(const Ray& ray, float tMin, float tMax, HitRecord& hitRecord) const override;
 
     Vector center;
     float radius;
+    Material* material;
 };
 
 inline bool Sphere::Hit(const Ray& ray, float tMin, float tMax, HitRecord& hitRecord) const
@@ -36,5 +38,6 @@ inline bool Sphere::Hit(const Ray& ray, float tMin, float tMax, HitRecord& hitRe
     hitRecord.t = t;
     hitRecord.p = ray.PointAtParameter(t);
     hitRecord.normal = (hitRecord.p - center) / radius;
+    hitRecord.material = material;
     return true;
 }
