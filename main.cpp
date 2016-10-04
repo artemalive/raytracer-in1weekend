@@ -5,11 +5,24 @@
 #include "sphere.h"
 #include "hitable_list.h"
 
+Vector RandomPointInUnitSphere()
+{
+    Vector p;
+    do
+    {
+        p = 2.0f * Vector(RandomFloat(), RandomFloat(), RandomFloat()) - Vector(1, 1, 1);
+    } while (Dot(p, p) >= 1.0f);
+    return p;
+}
+
 Vector Color(const Ray& ray, Hitable* world)
 {
     HitRecord hitRecord;
     if (world->Hit(ray, 0.0, std::numeric_limits<float>::max(), hitRecord))
-        return 0.5*(hitRecord.normal + Vector(1, 1, 1));
+    {
+        Vector target = hitRecord.p + hitRecord.normal + RandomPointInUnitSphere();
+        return 0.5f * Color(Ray(hitRecord.p, target - hitRecord.p), world);
+    }
 
     Vector unitDirection = UnitVector(ray.Direction());
     float t = 0.5f * (unitDirection.Y() + 1.0f);
@@ -46,6 +59,7 @@ int main()
                 color += Color(ray, &world);
             }
             color /= float(ns);
+            color = Vector(sqrt(color[0]), sqrt(color[1]), sqrt(color[2]));
             int ir = static_cast<int>(255.99 * color[0]);
             int ig = static_cast<int>(255.99 * color[1]);
             int ib = static_cast<int>(255.99 * color[2]);
