@@ -17,6 +17,31 @@ Vector RandomPointInUnitSphere()
     return p;
 }
 
+Vector Reflect(const Vector& v, const Vector& normal)
+{
+    return v - 2.0f*Dot(v, normal)*normal;
+}
+
+bool Refract(const Vector& v, const Vector& normal, float niOverNt, Vector& refracted)
+{
+    Vector uv = UnitVector(v);
+    float dt = Dot(uv, normal);
+
+    float discriminant = 1.0f - niOverNt*niOverNt*(1.0f - dt*dt);
+    if (discriminant <= 0.0f)
+        return false;
+
+    refracted = niOverNt*(uv - normal*dt) - normal*sqrt(discriminant);
+    return true;
+}
+
+float Schlick(float cosine, float refractionIndex)
+{
+    float r0 = (1 - refractionIndex) / (1 + refractionIndex);
+    r0 = r0*r0;
+    return r0 + (1 - r0)*std::pow(1 - cosine, 5);
+}
+
 class Lambertian : public Material
 {
 public:
@@ -33,11 +58,6 @@ public:
 
     Vector albedo;
 };
-
-Vector Reflect(const Vector& v, const Vector& normal)
-{
-    return v - 2.0f*Dot(v, normal)*normal;
-}
 
 class Metal : public Material
 {
@@ -58,6 +78,60 @@ public:
 
     Vector albedo;
     float fuzz;
+};
+
+class Dielectric : public Material
+{
+public:
+    Dielectric(float ri) : refractionIndex(ri) {}
+
+    bool Scatter(const Ray& ray, const HitRecord& hitRecord,
+        Vector& attenuation, Ray& scatteredRay) const override
+    {
+        Vector outwardNormal;
+        Vector reflected = Reflect(ray.Direction(), hitRecord.normal);
+
+        float n;
+        attenuation = Vector(1.0, 1.0, 1.0);
+        Vector refracted;
+        float reflectProb;
+        float cosine;
+
+        if (Dot(ray.Direction(), hitRecord.normal) > 0.0f)
+        {
+            outwardNormal = -hitRecord.normal;
+            n = refractionIndex;
+            cosine = Dot(ray.Direction(), hitRecord.normal) / ray.Direction().Length();
+            cosine = sqrt(1 - refractionIndex*refractionIndex*(1-cosine*cosine));
+        }
+        else
+        {
+            outwardNormal = hitRecord.normal;
+            n = 1.0f / refractionIndex;
+            cosine = -Dot(ray.Direction(), hitRecord.normal) / ray.Direction().Length();
+        }
+
+        if (Refract(ray.Direction(), outwardNormal, n, refracted))
+        {
+            reflectProb = Schlick(cosine, refractionIndex);
+        }
+        else
+        {
+            reflectProb = 1.0f;
+        }
+
+        if (RandomFloat() < reflectProb)
+        {
+            scatteredRay = Ray(hitRecord.p, reflected);
+        }
+        else
+        {
+            scatteredRay = Ray(hitRecord.p, refracted);
+        }
+        return true;
+    }
+
+    float refractionIndex;
 };
 
 Vector Color(const Ray& ray, Hitable* world, int depth)
@@ -87,13 +161,14 @@ int main()
 
     std::cout << "P3\n" << nx << " " << ny << "\n255\n";
 
-    Sphere sphere1(Vector(0, 0, -1), 0.5f, new Lambertian(Vector(0.8f, 0.3f, 0.3f)));
+    Sphere sphere1(Vector(0, 0, -1), 0.5f, new Lambertian(Vector(0.1f, 0.2f, 0.5f)));
     Sphere sphere2(Vector(0, -100.5f, -1), 100, new Lambertian(Vector(0.8f, 0.8f, 0.0f)));
-    Sphere sphere3(Vector(-1, 0, -1), 0.5f, new Metal(Vector(0.8f, 0.8f, 0.8f), 0.3f));
-    Sphere sphere4(Vector(1, 0, -1), 0.5f, new Metal(Vector(0.8f, 0.6f, 0.2f), 1.0f));
+    Sphere sphere3(Vector(1, 0, -1), 0.5f, new Metal(Vector(0.8f, 0.6f, 0.2f), 1.0f));
+    Sphere sphere4(Vector(-1.0, 0, -1), 0.5f, new Dielectric(1.5f));
+    Sphere sphere5(Vector(-1.0, 0, -1), -0.45f, new Dielectric(1.5f));
 
-    Hitable* list[4] = { &sphere1, &sphere2, &sphere3, &sphere4 };
-    HitableList world(list, 4);
+    Hitable* list[5] = { &sphere1, &sphere2, &sphere3, &sphere4, &sphere5 };
+    HitableList world(list, 5);
 
     Camera camera;
     for (int j = ny - 1; j >= 0; j--)
