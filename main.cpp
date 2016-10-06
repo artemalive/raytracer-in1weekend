@@ -43,7 +43,7 @@ int main()
     Hitable* list[5] = { &sphere1, &sphere2, &sphere3, &sphere4, &sphere5 };
     HitableList world(list, 5);
 
-    Camera camera;
+    Camera camera(Vector(-2, 2, 1), Vector(0, 0, -1), Vector(0, 1, 0), 20.0f, float(nx) / float(ny));
     for (int j = ny - 1; j >= 0; j--)
     {
         for (int i = 0; i < nx; i++)
