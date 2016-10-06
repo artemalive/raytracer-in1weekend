@@ -26,6 +26,46 @@ Vector Color(const Ray& ray, Hitable* world, int depth)
     return (1.0f - t)*Vector(1.0f, 1.0f, 1.0f) + t*Vector(0.5f, 0.7f, 1.0f);
 }
 
+Hitable* RandomScene()
+{
+    const int n = 500;
+    Hitable** list = new Hitable*[n + 1];
+    list[0] = new Sphere(Vector(0, -1000, 0), 1000, new Lambertian(Vector(0.5, 0.5, 0.5)));
+
+    int i = 1;
+    for (int a = -11; a < 11; a++)
+    {
+        for (int b = -11; b < 11; b++)
+        {
+            float chooseMat = RandomFloat();
+            Vector center(a + 0.9f*RandomFloat(), 0.2f, b + 0.9f*RandomFloat());
+            if ((center - Vector(4, 0.2f, 0)).Length() > 0.9f)
+            {
+                if (chooseMat < 0.8f)
+                {
+                    list[i++] = new Sphere(center, 0.2f, new Lambertian(
+                        Vector(RandomFloat()*RandomFloat(), RandomFloat()*RandomFloat(), RandomFloat()*RandomFloat())));
+                }
+                else if (chooseMat < 0.95)
+                {
+                    list[i++] = new Sphere(center, 0.2f, new Metal(
+                        Vector(0.5f*(1 + RandomFloat()), 0.5f*(1 + RandomFloat()), 0.5f*(1 + RandomFloat())), 0.5f*RandomFloat()));
+                }
+                else
+                {
+                    list[i++] = new Sphere(center, 0.2f, new Dielectric(1.5f));
+                }
+            }
+        }
+    }
+
+    list[i++] = new Sphere(Vector(0, 1, 0), 1.0f, new Dielectric(1.5f));
+    list[i++] = new Sphere(Vector(-4, 1, 0), 1.0f, new Lambertian(Vector(0.4f, 0.2f, 0.1f)));
+    list[i++] = new Sphere(Vector(4, 1, 0), 1.0f, new Metal(Vector(0.7f, 0.6f, 0.5f), 0.0));
+
+    return new HitableList(list, i);
+}
+
 int main()
 {
     const int nx = 200;
@@ -34,19 +74,21 @@ int main()
 
     std::cout << "P3\n" << nx << " " << ny << "\n255\n";
 
-    Sphere sphere1(Vector(0, 0, -1), 0.5f, new Lambertian(Vector(0.1f, 0.2f, 0.5f)));
+   /* Sphere sphere1(Vector(0, 0, -1), 0.5f, new Lambertian(Vector(0.1f, 0.2f, 0.5f)));
     Sphere sphere2(Vector(0, -100.5f, -1), 100, new Lambertian(Vector(0.8f, 0.8f, 0.0f)));
     Sphere sphere3(Vector(1, 0, -1), 0.5f, new Metal(Vector(0.8f, 0.6f, 0.2f), 1.0f));
     Sphere sphere4(Vector(-1.0, 0, -1), 0.5f, new Dielectric(1.5f));
     Sphere sphere5(Vector(-1.0, 0, -1), -0.45f, new Dielectric(1.5f));
 
     Hitable* list[5] = { &sphere1, &sphere2, &sphere3, &sphere4, &sphere5 };
-    HitableList world(list, 5);
+    HitableList world(list, 5);*/
 
-    Vector lookFrom(3, 3, 2);
-    Vector lookAt(0, 0, -1);
-    float distToFocus = (lookFrom - lookAt).Length();
-    float apperture = 2.0;
+    Hitable* world = RandomScene();
+
+    Vector lookFrom(13, 2, 3);
+    Vector lookAt(0, 0, 0);
+    float distToFocus = 10.0f;
+    float apperture = 0.1f;
     Camera camera(lookFrom, lookAt, Vector(0, 1, 0), 20.0f, float(nx) / float(ny), apperture, distToFocus);
     for (int j = ny - 1; j >= 0; j--)
     {
@@ -59,7 +101,7 @@ int main()
                 float v = (float(j) + RandomFloat()) / float(ny);
 
                 Ray ray = camera.GetRay(u, v);
-                color += Color(ray, &world, 0);
+                color += Color(ray, world, 0);
             }
             color /= float(ns);
             color = Vector(sqrt(color[0]), sqrt(color[1]), sqrt(color[2]));
