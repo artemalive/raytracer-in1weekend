@@ -1,11 +1,24 @@
 #include <algorithm>
+#include <chrono>
 #include <iostream>
 #include <limits>
+
 #include "camera.h"
 #include "material.h"
 #include "random.h"
 #include "sphere.h"
 #include "hitable_list.h"
+
+struct Timestamp {
+    Timestamp() : t(std::chrono::steady_clock::now()) {}
+    const std::chrono::time_point<std::chrono::steady_clock> t;
+};
+
+int64_t elapsed_milliseconds(Timestamp timestamp) {
+    auto duration = std::chrono::steady_clock::now() - timestamp.t;
+    auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
+    return static_cast<int64_t>(milliseconds);
+}
 
 Vector Color(const Ray& ray, Hitable* world, int depth)
 {
@@ -67,9 +80,9 @@ Hitable* RandomScene()
 
 int main()
 {
-    const int nx = 200;
-    const int ny = 100;
-    const int ns = 100;
+    const int nx = 1920;
+    const int ny = 1080;
+    const int ns = 2;
 
     std::cout << "P3\n" << nx << " " << ny << "\n255\n";
 
@@ -83,6 +96,8 @@ int main()
     HitableList world(list, 5);*/
 
     Hitable* world = RandomScene();
+
+    Timestamp t;
 
     Vector lookFrom(13, 2, 3);
     Vector lookAt(0, 0, 0);
@@ -110,4 +125,7 @@ int main()
             std::cout << ir << " " << ig << " " << ib << "\n";
         }
     }
+
+    int64_t time = elapsed_milliseconds(t);
+    fprintf(stderr, "Time = %.2fs\n", time / 1000.0f);
 }
