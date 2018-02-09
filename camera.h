@@ -40,7 +40,7 @@ public:
     {
         Vector rd = lensRadius*RandomInUnitDisk();
         Vector offset = u*rd.X() + v*rd.Y();
-        return Ray(origin + offset, lowerLeftCorner + s*horizontal + t*vertical - origin - offset);
+        return Ray(origin + offset, (lowerLeftCorner + s*horizontal + t*vertical - origin - offset).normalized());
     }
 
     Vector origin;

@@ -21,8 +21,7 @@ Vector Color(const Ray& ray, Hitable* world, int depth)
         return Vector(0, 0, 0);
     }
 
-    Vector unitDirection = UnitVector(ray.Direction());
-    float t = 0.5f * (unitDirection.Y() + 1.0f);
+    float t = 0.5f * (ray.direction.Y() + 1.0f);
     return (1.0f - t)*Vector(1.0f, 1.0f, 1.0f) + t*Vector(0.5f, 0.7f, 1.0f);
 }
 

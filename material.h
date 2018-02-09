@@ -53,8 +53,7 @@ public:
     bool Scatter(const Ray& ray, const HitRecord& hitRecord,
         Vector& attenuation, Ray& scatteredRay) const override
     {
-        Vector target = hitRecord.p + hitRecord.normal + RandomPointInUnitSphere();
-        scatteredRay = Ray(hitRecord.p, target - hitRecord.p);
+        scatteredRay = Ray(hitRecord.p, (hitRecord.normal + RandomPointInUnitSphere()).normalized());
         attenuation = albedo;
         return true;
     }
@@ -73,10 +72,10 @@ public:
     bool Scatter(const Ray& ray, const HitRecord& hitRecord,
         Vector& attenuation, Ray& scatteredRay) const override
     {
-        Vector reflected = Reflect(UnitVector(ray.Direction()), hitRecord.normal);
-        scatteredRay = Ray(hitRecord.p, reflected + fuzz * RandomPointInUnitSphere());
+        Vector reflected = Reflect(ray.direction, hitRecord.normal);
+        scatteredRay = Ray(hitRecord.p, (reflected + fuzz * RandomPointInUnitSphere()).normalized());
         attenuation = albedo;
-        return Dot(scatteredRay.Direction(), hitRecord.normal) > 0.0f;
+        return Dot(scatteredRay.direction, hitRecord.normal) > 0.0f;
     }
 
     Vector albedo;
@@ -92,7 +91,7 @@ public:
         Vector& attenuation, Ray& scatteredRay) const override
     {
         Vector outwardNormal;
-        Vector reflected = Reflect(ray.Direction(), hitRecord.normal);
+        Vector reflected = Reflect(ray.direction, hitRecord.normal);
 
         float n;
         attenuation = Vector(1.0, 1.0, 1.0);
@@ -100,21 +99,21 @@ public:
         float reflectProb;
         float cosine;
 
-        if (Dot(ray.Direction(), hitRecord.normal) > 0.0f)
+        if (Dot(ray.direction, hitRecord.normal) > 0.0f)
         {
             outwardNormal = -hitRecord.normal;
             n = refractionIndex;
-            cosine = Dot(ray.Direction(), hitRecord.normal) / ray.Direction().Length();
+            cosine = Dot(ray.direction, hitRecord.normal);
             cosine = sqrt(1 - refractionIndex*refractionIndex*(1-cosine*cosine));
         }
         else
         {
             outwardNormal = hitRecord.normal;
             n = 1.0f / refractionIndex;
-            cosine = -Dot(ray.Direction(), hitRecord.normal) / ray.Direction().Length();
+            cosine = -Dot(ray.direction, hitRecord.normal);
         }
 
-        if (Refract(ray.Direction(), outwardNormal, n, refracted))
+        if (Refract(ray.direction, outwardNormal, n, refracted))
         {
             reflectProb = Schlick(cosine, refractionIndex);
         }

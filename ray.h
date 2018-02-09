@@ -6,12 +6,12 @@ class Ray
 {
 public:
     Ray() {}
-    Ray(const Vector& a, const Vector& b) : a(a), b(b) {}
 
-    const Vector& Origin() const { return a; }
-    const Vector& Direction() const { return b; }
-    Vector PointAtParameter(float t) const { return a + t*b; }
+    Ray(const Vector& origin, const Vector& direction)
+        : origin(origin), direction(direction) {}
+
+    Vector PointAtParameter(float t) const { return origin + t * direction; }
     
-    Vector a;
-    Vector b;
+    Vector origin;
+    Vector direction;
 };

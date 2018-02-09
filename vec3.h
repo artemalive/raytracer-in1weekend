@@ -30,9 +30,14 @@ public:
     Vector& operator*=(float t);
     Vector& operator/=(float t);
 
+    Vector operator/(float t) const {
+        return Vector(e[0] / t, e[1] / t, e[2] / t);
+    }
+
     float Length() const { return sqrt(SquaredLength()); }
     float SquaredLength() const { return e[0]*e[0] + e[1]*e[1] + e[2]*e[2]; }
-    void MakeUnitVector();
+
+    Vector normalized() const { return *this / Length(); }
 
     float e[3];
 };
@@ -85,11 +90,6 @@ inline Vector& Vector::operator/=(float t)
     return *this;
 }
 
-inline void Vector::MakeUnitVector()
-{
-    *this /= Length();
-}
-
 inline Vector operator+(const Vector& v1, const Vector& v2)
 {
     return Vector(v1.e[0] + v2.e[0], v1.e[1] + v2.e[1], v1.e[2] + v2.e[2]);
@@ -118,11 +118,6 @@ inline Vector operator*(const Vector& v, float t)
 inline Vector operator*(float t, const Vector& v)
 {
     return v * t;
-}
-
-inline Vector operator/(const Vector& v, float t)
-{
-    return Vector(v.e[0] / t, v.e[1] / t, v.e[2] / t);
 }
 
 inline float Dot(const Vector& v1, const Vector& v2)

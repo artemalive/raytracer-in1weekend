@@ -18,19 +18,18 @@ public:
 
 inline bool Sphere::Hit(const Ray& ray, float tMin, float tMax, HitRecord& hitRecord) const
 {
-    Vector oc = ray.Origin() - center;
-    float a = Dot(ray.Direction(), ray.Direction());
-    float b = Dot(oc, ray.Direction());
+    Vector oc = ray.origin - center;
+    float b = Dot(oc, ray.direction);
     float c = Dot(oc, oc) - radius*radius;
 
-    float discriminant = b*b - a*c;
+    float discriminant = b*b - c;
     if (discriminant <= 0.0f)
         return false;
 
-    float t = (-b - sqrt(discriminant)) / a;
+    float t = -b - sqrt(discriminant);
     if (t <= tMin || t >= tMax)
     {
-        t = (-b + sqrt(discriminant)) / a;
+        t = -b + sqrt(discriminant);
         if (t <= tMin || t >= tMax)
             return false;
     }
