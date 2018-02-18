@@ -80,8 +80,8 @@ Hitable* RandomScene()
 
 int main()
 {
-    const int nx = 1920;
-    const int ny = 1080;
+    const int nx = 1280;
+    const int ny = 720;
     const int ns = 2;
 
     std::cout << "P3\n" << nx << " " << ny << "\n255\n";
@@ -114,7 +114,7 @@ int main()
                 float u = (float(i) + RandomFloat()) / float(nx);
                 float v = (float(j) + RandomFloat()) / float(ny);
 
-                Ray ray = camera.GetRay(u, v);
+                Ray ray = camera.get_ray(u, v);
                 color += Color(ray, world, 0);
             }
             color /= float(ns);

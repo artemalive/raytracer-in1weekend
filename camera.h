@@ -5,7 +5,7 @@
 
 static const float PI = 3.14159265358979323846f;
 
-Vector RandomInUnitDisk()
+static Vector random_in_unit_disk()
 {
     Vector p;
     do
@@ -18,35 +18,51 @@ Vector RandomInUnitDisk()
 class Camera
 {
 public:
-    Camera(Vector lookFrom, Vector lookAt, Vector up, float vfov, float aspect, float aperture, float focusDist)
+    Camera(
+        Vector look_from, 
+        Vector look_at,
+        Vector up_direction,
+        float vfov,
+        float aspect,
+        float aperture,
+        float focus_distance
+    )
+        : lens_radius(aperture / 2.0f)
+        , focus_distance(focus_distance)
+        , origin(look_from)
     {
-        lensRadius = aperture / 2.0f;
+        forward_dir = (look_at - look_from).normalized();
+        right_dir = Cross(forward_dir, up_direction).normalized();
+        up_dir = Cross(right_dir, forward_dir);
 
         float theta = vfov * PI / 180.0f;
-        float halfHeight = std::tan(theta / 2.0f);
-        float halfWidth = aspect * halfHeight;
-
-        origin = lookFrom;
-        w = UnitVector(lookFrom - lookAt);
-        u = UnitVector(Cross(up, w));
-        v = Cross(w, u);
-
-        lowerLeftCorner = origin - halfWidth*focusDist*u - halfHeight*focusDist*v - focusDist*w;
-        horizontal = 2.0f*halfWidth*focusDist*u;
-        vertical = 2.0f*halfHeight*focusDist*v;
+        float tn = std::tan(theta / 2.0f);
+        half_width_vector = aspect * tn * right_dir;
+        half_height_vector = tn * up_dir;
     }
 
-    Ray GetRay(float s, float t)
+    Ray get_ray(float s, float t) const
     {
-        Vector rd = lensRadius*RandomInUnitDisk();
-        Vector offset = u*rd.X() + v*rd.Y();
-        return Ray(origin + offset, (lowerLeftCorner + s*horizontal + t*vertical - origin - offset).normalized());
+        Vector lens_point = lens_radius * random_in_unit_disk();
+        Vector origin_offset = right_dir * lens_point.X() + up_dir * lens_point.Y();
+
+        float u = 2.f * s - 1.f;
+        float v = 2.f * t - 1.f;
+
+        Vector sample_vector = forward_dir + u * half_width_vector + v * half_height_vector;
+        sample_vector *= focus_distance;
+
+        return Ray(origin + origin_offset, (sample_vector - origin_offset).normalized());
     }
+
+    float lens_radius;
+    float focus_distance;
 
     Vector origin;
-    Vector lowerLeftCorner;
-    Vector horizontal;
-    Vector vertical;
-    Vector u, v, w;
-    float lensRadius;
+    Vector forward_dir;
+    Vector right_dir;
+    Vector up_dir;
+
+    Vector half_width_vector;
+    Vector half_height_vector;
 };

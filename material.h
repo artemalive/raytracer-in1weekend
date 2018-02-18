@@ -20,7 +20,7 @@ Vector Reflect(const Vector& v, const Vector& normal)
 
 bool Refract(const Vector& v, const Vector& normal, float niOverNt, Vector& refracted)
 {
-    Vector uv = UnitVector(v);
+    Vector uv = v.normalized();
     float dt = Dot(uv, normal);
 
     float discriminant = 1.0f - niOverNt*niOverNt*(1.0f - dt*dt);

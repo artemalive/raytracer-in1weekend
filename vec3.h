@@ -132,8 +132,3 @@ inline Vector Cross(const Vector& v1, const Vector& v2)
         v1.e[2]*v2.e[0] - v1.e[0]*v2.e[2],
         v1.e[0]*v2.e[1] - v1.e[1]*v2.e[0]);
 }
-
-inline Vector UnitVector(const Vector& v)
-{
-    return v / v.Length();
-}
