@@ -9,9 +9,11 @@
     <ClInclude Include="random.h" />
     <ClInclude Include="material.h" />
     <ClInclude Include="vector.h" />
+    <ClInclude Include="thread.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="random.cpp" />
+    <ClCompile Include="thread.cpp" />
   </ItemGroup>
 </Project>
