@@ -34,7 +34,7 @@ Vector Color(const Ray& ray, Hitable* world, int depth)
         return Vector(0, 0, 0);
     }
 
-    float t = 0.5f * (ray.direction.Y() + 1.0f);
+    float t = 0.5f * (ray.direction.y + 1.0f);
     return (1.0f - t)*Vector(1.0f, 1.0f, 1.0f) + t*Vector(0.5f, 0.7f, 1.0f);
 }
 
@@ -51,7 +51,7 @@ Hitable* RandomScene()
         {
             float chooseMat = RandomFloat();
             Vector center(a + 0.9f*RandomFloat(), 0.2f, b + 0.9f*RandomFloat());
-            if ((center - Vector(4, 0.2f, 0)).Length() > 0.9f)
+            if ((center - Vector(4, 0.2f, 0)).length() > 0.9f)
             {
                 if (chooseMat < 0.8f)
                 {

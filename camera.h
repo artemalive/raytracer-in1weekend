@@ -11,7 +11,7 @@ static Vector random_in_unit_disk()
     do
     {
         p = 2.0f * Vector(RandomFloat(), RandomFloat(), 0.0f) - Vector(1, 1, 0);
-    } while (Dot(p, p) >= 1.0f);
+    } while (dot_product(p, p) >= 1.0f);
     return p;
 }
 
@@ -32,8 +32,8 @@ public:
         , origin(look_from)
     {
         forward_dir = (look_at - look_from).normalized();
-        right_dir = Cross(forward_dir, up_direction).normalized();
-        up_dir = Cross(right_dir, forward_dir);
+        right_dir = cross_product(forward_dir, up_direction).normalized();
+        up_dir = cross_product(right_dir, forward_dir);
 
         float theta = vfov * PI / 180.0f;
         float tn = std::tan(theta / 2.0f);
@@ -44,7 +44,7 @@ public:
     Ray get_ray(float s, float t) const
     {
         Vector lens_point = lens_radius * random_in_unit_disk();
-        Vector origin_offset = right_dir * lens_point.X() + up_dir * lens_point.Y();
+        Vector origin_offset = right_dir * lens_point.x + up_dir * lens_point.y;
 
         float u = 2.f * s - 1.f;
         float v = 2.f * t - 1.f;

@@ -9,19 +9,19 @@ Vector RandomPointInUnitSphere()
     do
     {
         p = 2.0f * Vector(RandomFloat(), RandomFloat(), RandomFloat()) - Vector(1, 1, 1);
-    } while (Dot(p, p) >= 1.0f);
+    } while (dot_product(p, p) >= 1.0f);
     return p;
 }
 
 Vector Reflect(const Vector& v, const Vector& normal)
 {
-    return v - 2.0f*Dot(v, normal)*normal;
+    return v - 2.0f*dot_product(v, normal)*normal;
 }
 
 bool Refract(const Vector& v, const Vector& normal, float niOverNt, Vector& refracted)
 {
     Vector uv = v.normalized();
-    float dt = Dot(uv, normal);
+    float dt = dot_product(uv, normal);
 
     float discriminant = 1.0f - niOverNt*niOverNt*(1.0f - dt*dt);
     if (discriminant <= 0.0f)
@@ -75,7 +75,7 @@ public:
         Vector reflected = Reflect(ray.direction, hitRecord.normal);
         scatteredRay = Ray(hitRecord.p, (reflected + fuzz * RandomPointInUnitSphere()).normalized());
         attenuation = albedo;
-        return Dot(scatteredRay.direction, hitRecord.normal) > 0.0f;
+        return dot_product(scatteredRay.direction, hitRecord.normal) > 0.0f;
     }
 
     Vector albedo;
@@ -99,18 +99,18 @@ public:
         float reflectProb;
         float cosine;
 
-        if (Dot(ray.direction, hitRecord.normal) > 0.0f)
+        if (dot_product(ray.direction, hitRecord.normal) > 0.0f)
         {
             outwardNormal = -hitRecord.normal;
             n = refractionIndex;
-            cosine = Dot(ray.direction, hitRecord.normal);
+            cosine = dot_product(ray.direction, hitRecord.normal);
             cosine = sqrt(1 - refractionIndex*refractionIndex*(1-cosine*cosine));
         }
         else
         {
             outwardNormal = hitRecord.normal;
             n = 1.0f / refractionIndex;
-            cosine = -Dot(ray.direction, hitRecord.normal);
+            cosine = -dot_product(ray.direction, hitRecord.normal);
         }
 
         if (Refract(ray.direction, outwardNormal, n, refracted))

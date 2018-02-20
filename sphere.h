@@ -19,8 +19,8 @@ public:
 inline bool Sphere::Hit(const Ray& ray, float tMin, float tMax, HitRecord& hitRecord) const
 {
     Vector oc = ray.origin - center;
-    float b = Dot(oc, ray.direction);
-    float c = Dot(oc, oc) - radius*radius;
+    float b = dot_product(oc, ray.direction);
+    float c = dot_product(oc, oc) - radius*radius;
 
     float discriminant = b*b - c;
     if (discriminant <= 0.0f)
