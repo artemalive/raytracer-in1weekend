@@ -25,11 +25,15 @@ public:
         float vfov,
         float aspect,
         float aperture,
-        float focus_distance
+        float focus_distance,
+        float time0,
+        float time1
     )
         : lens_radius(aperture / 2.0f)
         , focus_distance(focus_distance)
         , origin(look_from)
+        , time0(time0)
+        , time1(time1)
     {
         forward_dir = (look_at - look_from).normalized();
         right_dir = cross_product(forward_dir, up_direction).normalized();
@@ -52,11 +56,16 @@ public:
         Vector sample_vector = forward_dir + u * half_width_vector + v * half_height_vector;
         sample_vector *= focus_distance;
 
-        return Ray(origin + origin_offset, (sample_vector - origin_offset).normalized());
+        float time = time0 + rng.random_float() * (time1 - time0);
+
+        return Ray(origin + origin_offset, (sample_vector - origin_offset).normalized(), time);
     }
 
     float lens_radius;
     float focus_distance;
+
+    float time0;
+    float time1;
 
     Vector origin;
     Vector forward_dir;

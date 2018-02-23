@@ -60,8 +60,12 @@ Hitable* RandomScene()
             {
                 if (chooseMat < 0.8f)
                 {
-                    list[i++] = new Sphere(center, 0.2f, new Lambertian(
-                        Vector(rng.random_float()*rng.random_float(), rng.random_float()*rng.random_float(), rng.random_float()*rng.random_float())));
+                    list[i++] = new Moving_Sphere(center, center + Vector(0, 0.5f*rng.random_float(), 0), 0.f, 1.f,
+                        0.2f,
+                        new Lambertian(
+                            Vector(rng.random_float()*rng.random_float(), rng.random_float()*rng.random_float(), rng.random_float()*rng.random_float())
+                        )
+                    );
                 }
                 else if (chooseMat < 0.95)
                 {
@@ -164,7 +168,7 @@ int main()
     Vector lookAt(0, 0, 0);
     float distToFocus = 10.0f;
     float apperture = 0.1f;
-    Camera camera(lookFrom, lookAt, Vector(0, 1, 0), 20.0f, float(nx) / float(ny), apperture, distToFocus);
+    Camera camera(lookFrom, lookAt, Vector(0, 1, 0), 20.0f, float(nx) / float(ny), apperture, distToFocus, 0.f, 1.f);
 
     std::vector<std::array<int, 3>> result(nx * ny);
     int size = 32;
