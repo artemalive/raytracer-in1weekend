@@ -3,12 +3,12 @@
 #include "hitable.h"
 #include "random.h"
 
-Vector RandomPointInUnitSphere()
+Vector RandomPointInUnitSphere(RNG& rng)
 {
     Vector p;
     do
     {
-        p = 2.0f * Vector(RandomFloat(), RandomFloat(), RandomFloat()) - Vector(1, 1, 1);
+        p = 2.0f * Vector(rng.random_float(), rng.random_float(), rng.random_float()) - Vector(1, 1, 1);
     } while (dot_product(p, p) >= 1.0f);
     return p;
 }
@@ -41,7 +41,7 @@ float Schlick(float cosine, float refractionIndex)
 class Material
 {
 public:
-    virtual bool Scatter(const Ray& ray, const HitRecord& hitRecord,
+    virtual bool Scatter(RNG& rng, const Ray& ray, const HitRecord& hitRecord,
         Vector& attenuation, Ray& scatteredRay) const = 0;
 };
 
@@ -50,10 +50,10 @@ class Lambertian : public Material
 public:
     Lambertian(const Vector& albedo) : albedo(albedo) {}
 
-    bool Scatter(const Ray& ray, const HitRecord& hitRecord,
+    bool Scatter(RNG& rng, const Ray& ray, const HitRecord& hitRecord,
         Vector& attenuation, Ray& scatteredRay) const override
     {
-        scatteredRay = Ray(hitRecord.p, (hitRecord.normal + RandomPointInUnitSphere()).normalized());
+        scatteredRay = Ray(hitRecord.p, (hitRecord.normal + RandomPointInUnitSphere(rng)).normalized());
         attenuation = albedo;
         return true;
     }
@@ -69,11 +69,11 @@ public:
         this->fuzz = std::min(fuzz, 1.0f);
     }
 
-    bool Scatter(const Ray& ray, const HitRecord& hitRecord,
+    bool Scatter(RNG& rng, const Ray& ray, const HitRecord& hitRecord,
         Vector& attenuation, Ray& scatteredRay) const override
     {
         Vector reflected = Reflect(ray.direction, hitRecord.normal);
-        scatteredRay = Ray(hitRecord.p, (reflected + fuzz * RandomPointInUnitSphere()).normalized());
+        scatteredRay = Ray(hitRecord.p, (reflected + fuzz * RandomPointInUnitSphere(rng)).normalized());
         attenuation = albedo;
         return dot_product(scatteredRay.direction, hitRecord.normal) > 0.0f;
     }
@@ -87,7 +87,7 @@ class Dielectric : public Material
 public:
     Dielectric(float ri) : refractionIndex(ri) {}
 
-    bool Scatter(const Ray& ray, const HitRecord& hitRecord,
+    bool Scatter(RNG& rng, const Ray& ray, const HitRecord& hitRecord,
         Vector& attenuation, Ray& scatteredRay) const override
     {
         Vector outwardNormal;
@@ -122,7 +122,7 @@ public:
             reflectProb = 1.0f;
         }
 
-        if (RandomFloat() < reflectProb)
+        if (rng.random_float() < reflectProb)
         {
             scatteredRay = Ray(hitRecord.p, reflected);
         }

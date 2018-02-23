@@ -23,16 +23,16 @@ int64_t elapsed_milliseconds(Timestamp timestamp) {
     return static_cast<int64_t>(milliseconds);
 }
 
-Vector Color(const Ray& ray, const Hitable* world, int depth)
+Vector Color(RNG& rng, const Ray& ray, const Hitable* world, int depth)
 {
     HitRecord hitRecord;
     if (world->Hit(ray, 0.001f, std::numeric_limits<float>::max(), hitRecord))
     {
         Ray scattered;
         Vector attenuation;
-        if (depth < 50 && hitRecord.material->Scatter(ray, hitRecord, attenuation, scattered))
+        if (depth < 50 && hitRecord.material->Scatter(rng, ray, hitRecord, attenuation, scattered))
         {
-            return attenuation * Color(scattered, world, depth + 1);
+            return attenuation * Color(rng, scattered, world, depth + 1);
         }
         return Vector(0, 0, 0);
     }
@@ -47,24 +47,26 @@ Hitable* RandomScene()
     Hitable** list = new Hitable*[n + 1];
     list[0] = new Sphere(Vector(0, -1000, 0), 1000, new Lambertian(Vector(0.5, 0.5, 0.5)));
 
+    RNG rng;
+
     int i = 1;
     for (int a = -11; a < 11; a++)
     {
         for (int b = -11; b < 11; b++)
         {
-            float chooseMat = RandomFloat();
-            Vector center(a + 0.9f*RandomFloat(), 0.2f, b + 0.9f*RandomFloat());
+            float chooseMat = rng.random_float();
+            Vector center(a + 0.9f*rng.random_float(), 0.2f, b + 0.9f*rng.random_float());
             if ((center - Vector(4, 0.2f, 0)).length() > 0.9f)
             {
                 if (chooseMat < 0.8f)
                 {
                     list[i++] = new Sphere(center, 0.2f, new Lambertian(
-                        Vector(RandomFloat()*RandomFloat(), RandomFloat()*RandomFloat(), RandomFloat()*RandomFloat())));
+                        Vector(rng.random_float()*rng.random_float(), rng.random_float()*rng.random_float(), rng.random_float()*rng.random_float())));
                 }
                 else if (chooseMat < 0.95)
                 {
                     list[i++] = new Sphere(center, 0.2f, new Metal(
-                        Vector(0.5f*(1 + RandomFloat()), 0.5f*(1 + RandomFloat()), 0.5f*(1 + RandomFloat())), 0.5f*RandomFloat()));
+                        Vector(0.5f*(1 + rng.random_float()), 0.5f*(1 + rng.random_float()), 0.5f*(1 + rng.random_float())), 0.5f*rng.random_float()));
                 }
                 else
                 {
@@ -102,18 +104,18 @@ public:
         , results(results)
     {}
 
-	void run() override {
+	void run(RNG& rng) override {
         for (int j = y1; j < y2; j++) {
             for (int i = x1; i < x2; i++) {
 
                 Vector color(0.0f, 0.0f, 0.0f);
 
                 for (int s = 0; s < sample_count; s++) {
-                    float u = (float(i) + RandomFloat()) / float(image_width);
-                    float v = (float(j) + RandomFloat()) / float(image_height);
+                    float u = (float(i) + rng.random_float()) / float(image_width);
+                    float v = (float(j) + rng.random_float()) / float(image_height);
 
-                    Ray ray = camera->get_ray(u, v);
-                    color += Color(ray, world, 0);
+                    Ray ray = camera->get_ray(rng, u, v);
+                    color += Color(rng, ray, world, 0);
                 }
 
                 color /= float(sample_count);

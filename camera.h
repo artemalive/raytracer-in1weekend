@@ -5,12 +5,12 @@
 
 static const float PI = 3.14159265358979323846f;
 
-static Vector random_in_unit_disk()
+static Vector random_in_unit_disk(RNG& rng)
 {
     Vector p;
     do
     {
-        p = 2.0f * Vector(RandomFloat(), RandomFloat(), 0.0f) - Vector(1, 1, 0);
+        p = 2.0f * Vector(rng.random_float(), rng.random_float(), 0.0f) - Vector(1, 1, 0);
     } while (dot_product(p, p) >= 1.0f);
     return p;
 }
@@ -41,9 +41,9 @@ public:
         half_height_vector = tn * up_dir;
     }
 
-    Ray get_ray(float s, float t) const
+    Ray get_ray(RNG& rng, float s, float t) const
     {
-        Vector lens_point = lens_radius * random_in_unit_disk();
+        Vector lens_point = lens_radius * random_in_unit_disk(rng);
         Vector origin_offset = right_dir * lens_point.x + up_dir * lens_point.y;
 
         float u = 2.f * s - 1.f;

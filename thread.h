@@ -1,5 +1,7 @@
 #pragma once
 
+#include "random.h"
+
 #include <vector>
 
 #define NOMINMAX 
@@ -7,7 +9,7 @@
 
 class Task {
 public:
-	virtual void run() = 0;
+	virtual void run(RNG& rng) = 0;
 };
 
 class Thread {
@@ -22,6 +24,7 @@ private:
 private:
 	HANDLE thread;
 	HANDLE task_completed_event;
+    RNG rng;
 
 	static Task* pending_task;
 	static HANDLE task_ready_event;

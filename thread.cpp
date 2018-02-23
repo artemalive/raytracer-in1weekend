@@ -46,7 +46,7 @@ DWORD Thread::main(PVOID pv_param) {
             break;
 
         // do the job
-		task->run();
+		task->run(thread->rng);
 
 		// notify that job is done
 		::SetEvent(thread->task_completed_event);
