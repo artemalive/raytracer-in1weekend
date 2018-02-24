@@ -53,7 +53,7 @@ public:
     bool Scatter(RNG& rng, const Ray& ray, const HitRecord& hitRecord,
         Vector& attenuation, Ray& scatteredRay) const override
     {
-        scatteredRay = Ray(hitRecord.p, (hitRecord.normal + RandomPointInUnitSphere(rng)).normalized());
+        scatteredRay = Ray(hitRecord.p, (hitRecord.normal + RandomPointInUnitSphere(rng)).normalized(), ray.time);
         attenuation = albedo;
         return true;
     }
@@ -73,7 +73,7 @@ public:
         Vector& attenuation, Ray& scatteredRay) const override
     {
         Vector reflected = Reflect(ray.direction, hitRecord.normal);
-        scatteredRay = Ray(hitRecord.p, (reflected + fuzz * RandomPointInUnitSphere(rng)).normalized());
+        scatteredRay = Ray(hitRecord.p, (reflected + fuzz * RandomPointInUnitSphere(rng)).normalized(), ray.time);
         attenuation = albedo;
         return dot_product(scatteredRay.direction, hitRecord.normal) > 0.0f;
     }
@@ -124,11 +124,11 @@ public:
 
         if (rng.random_float() < reflectProb)
         {
-            scatteredRay = Ray(hitRecord.p, reflected);
+            scatteredRay = Ray(hitRecord.p, reflected, ray.time);
         }
         else
         {
-            scatteredRay = Ray(hitRecord.p, refracted);
+            scatteredRay = Ray(hitRecord.p, refracted, ray.time);
         }
         return true;
     }
