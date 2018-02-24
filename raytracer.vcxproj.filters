@@ -10,6 +10,8 @@
     <ClInclude Include="material.h" />
     <ClInclude Include="vector.h" />
     <ClInclude Include="thread.h" />
+    <ClInclude Include="bounding_box.h" />
+    <ClInclude Include="bvh.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />

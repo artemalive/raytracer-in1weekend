@@ -41,7 +41,7 @@ float Schlick(float cosine, float refractionIndex)
 class Material
 {
 public:
-    virtual bool Scatter(RNG& rng, const Ray& ray, const HitRecord& hitRecord,
+    virtual bool Scatter(RNG& rng, const Ray& ray, const Hit_Record& hit_record,
         Vector& attenuation, Ray& scatteredRay) const = 0;
 };
 
@@ -50,7 +50,7 @@ class Lambertian : public Material
 public:
     Lambertian(const Vector& albedo) : albedo(albedo) {}
 
-    bool Scatter(RNG& rng, const Ray& ray, const HitRecord& hitRecord,
+    bool Scatter(RNG& rng, const Ray& ray, const Hit_Record& hitRecord,
         Vector& attenuation, Ray& scatteredRay) const override
     {
         scatteredRay = Ray(hitRecord.p, (hitRecord.normal + RandomPointInUnitSphere(rng)).normalized(), ray.time);
@@ -69,7 +69,7 @@ public:
         this->fuzz = std::min(fuzz, 1.0f);
     }
 
-    bool Scatter(RNG& rng, const Ray& ray, const HitRecord& hitRecord,
+    bool Scatter(RNG& rng, const Ray& ray, const Hit_Record& hitRecord,
         Vector& attenuation, Ray& scatteredRay) const override
     {
         Vector reflected = Reflect(ray.direction, hitRecord.normal);
@@ -87,7 +87,7 @@ class Dielectric : public Material
 public:
     Dielectric(float ri) : refractionIndex(ri) {}
 
-    bool Scatter(RNG& rng, const Ray& ray, const HitRecord& hitRecord,
+    bool Scatter(RNG& rng, const Ray& ray, const Hit_Record& hitRecord,
         Vector& attenuation, Ray& scatteredRay) const override
     {
         Vector outwardNormal;

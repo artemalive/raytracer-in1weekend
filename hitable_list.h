@@ -1,6 +1,7 @@
 #pragma once
 
 #include "hitable.h"
+#include <cassert>
 
 class HitableList : public Hitable
 {
@@ -8,21 +9,26 @@ public:
     HitableList() {}
     HitableList(Hitable** list, int listSize) : list(list), listSize(listSize) {}
 
-    bool Hit(const Ray& ray, float tMin, float tMax, HitRecord& hitRecord) const override;
+    bool hit(const Ray& ray, float tMin, float tMax, Hit_Record& hitRecord) const override;
+
+    Bounding_Box boudning_box(float t0, float t1) const override {
+        assert(!"should not be called");
+        return Bounding_Box();
+    }
 
     Hitable** list;
     int listSize;
 };
 
-inline bool HitableList::Hit(const Ray& ray, float tMin, float tMax, HitRecord& hitRecord) const
+inline bool HitableList::hit(const Ray& ray, float tMin, float tMax, Hit_Record& hitRecord) const
 {
-    HitRecord tempHit;
+    Hit_Record tempHit;
     bool hitAnything = false;
     float closestSoFar = tMax;
 
     for (int i = 0; i < listSize; i++)
     {
-        if (list[i]->Hit(ray, tMin, closestSoFar, tempHit))
+        if (list[i]->hit(ray, tMin, closestSoFar, tempHit))
         {
             hitAnything = true;
             closestSoFar = tempHit.t;

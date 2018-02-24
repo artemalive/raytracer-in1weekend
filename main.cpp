@@ -5,6 +5,7 @@
 #include <limits>
 #include <memory>
 
+#include "bvh.h"
 #include "camera.h"
 #include "material.h"
 #include "random.h"
@@ -25,8 +26,8 @@ int64_t elapsed_milliseconds(Timestamp timestamp) {
 
 Vector Color(RNG& rng, const Ray& ray, const Hitable* world, int depth)
 {
-    HitRecord hitRecord;
-    if (world->Hit(ray, 0.001f, std::numeric_limits<float>::max(), hitRecord))
+    Hit_Record hitRecord;
+    if (world->hit(ray, 0.001f, std::numeric_limits<float>::max(), hitRecord))
     {
         Ray scattered;
         Vector attenuation;
@@ -41,7 +42,7 @@ Vector Color(RNG& rng, const Ray& ray, const Hitable* world, int depth)
     return (1.0f - t)*Vector(1.0f, 1.0f, 1.0f) + t*Vector(0.5f, 0.7f, 1.0f);
 }
 
-Hitable* RandomScene()
+Hitable* RandomScene(float time0, float time1)
 {
     const int n = 500;
     Hitable** list = new Hitable*[n + 1];
@@ -60,7 +61,13 @@ Hitable* RandomScene()
             {
                 if (chooseMat < 0.8f)
                 {
-                    list[i++] = new Moving_Sphere(center, center + Vector(0, 0.5f*rng.random_float(), 0), 0.f, 1.f,
+                    /*list[i++] = new Moving_Sphere(center, center + Vector(0, 0.5f*rng.random_float(), 0), 0.f, 1.f,
+                        0.2f,
+                        new Lambertian(
+                            Vector(rng.random_float()*rng.random_float(), rng.random_float()*rng.random_float(), rng.random_float()*rng.random_float())
+                        )
+                    );*/
+                    list[i++] = new Sphere(center,
                         0.2f,
                         new Lambertian(
                             Vector(rng.random_float()*rng.random_float(), rng.random_float()*rng.random_float(), rng.random_float()*rng.random_float())
@@ -84,7 +91,9 @@ Hitable* RandomScene()
     list[i++] = new Sphere(Vector(-4, 1, 0), 1.0f, new Lambertian(Vector(0.4f, 0.2f, 0.1f)));
     list[i++] = new Sphere(Vector(4, 1, 0), 1.0f, new Metal(Vector(0.7f, 0.6f, 0.5f), 0.0));
 
-    return new HitableList(list, i);
+    return new BVH_Node(rng, list, i, time0, time1);
+
+   // return new HitableList(list, i);
 }
 
 class Render_Rect_Task : public Task {
@@ -151,16 +160,10 @@ int main()
 
     std::cout << "P3\n" << nx << " " << ny << "\n255\n";
 
-   /* Sphere sphere1(Vector(0, 0, -1), 0.5f, new Lambertian(Vector(0.1f, 0.2f, 0.5f)));
-    Sphere sphere2(Vector(0, -100.5f, -1), 100, new Lambertian(Vector(0.8f, 0.8f, 0.0f)));
-    Sphere sphere3(Vector(1, 0, -1), 0.5f, new Metal(Vector(0.8f, 0.6f, 0.2f), 1.0f));
-    Sphere sphere4(Vector(-1.0, 0, -1), 0.5f, new Dielectric(1.5f));
-    Sphere sphere5(Vector(-1.0, 0, -1), -0.45f, new Dielectric(1.5f));
+    float time0 = 0.f;
+    float time1 = 1.f;
 
-    Hitable* list[5] = { &sphere1, &sphere2, &sphere3, &sphere4, &sphere5 };
-    HitableList world(list, 5);*/
-
-    Hitable* world = RandomScene();
+    Hitable* world = RandomScene(time0, time1);
 
     Timestamp t;
 
@@ -168,7 +171,9 @@ int main()
     Vector lookAt(0, 0, 0);
     float distToFocus = 10.0f;
     float apperture = 0.1f;
-    Camera camera(lookFrom, lookAt, Vector(0, 1, 0), 20.0f, float(nx) / float(ny), apperture, distToFocus, 0.f, 1.f);
+
+    
+    Camera camera(lookFrom, lookAt, Vector(0, 1, 0), 20.0f, float(nx) / float(ny), apperture, distToFocus, time0, time1);
 
     std::vector<std::array<int, 3>> result(nx * ny);
     int size = 32;

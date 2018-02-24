@@ -1,40 +1,11 @@
 #pragma once
 
+#include "bounding_box.h"
 #include "hitable.h"
-
-class Sphere : public Hitable
-{
-public:
-    Sphere() {}
-    Sphere(const Vector& center, float radius, Material* material)
-        : center(center), radius(radius), material(material) {}
-
-    bool Hit(const Ray& ray, float tMin, float tMax, HitRecord& hitRecord) const override;
-
-    Vector center;
-    float radius;
-    Material* material;
-};
-
-class Moving_Sphere : public Hitable
-{
-public:
-    Moving_Sphere() {}
-    Moving_Sphere(const Vector& center0, const Vector& center1, float time0, float time1,
-        float radius, Material* material)
-        : center0(center0), center1(center1), time0(time0), time1(time1), radius(radius), material(material) {}
-
-    bool Hit(const Ray& ray, float tMin, float tMax, HitRecord& hitRecord) const override;
-
-    Vector center0, center1;
-    float time0, time1;
-    float radius;
-    Material* material;
-};
 
 inline bool ray_sphere_intersect(
     const Vector& center, float radius, const Ray& ray,
-    float tMin, float tMax, Material* material, HitRecord& hitRecord)
+    float tMin, float tMax, Material* material, Hit_Record& hitRecord)
 {
     Vector oc = ray.origin - center;
     float b = dot_product(oc, ray.direction);
@@ -59,14 +30,56 @@ inline bool ray_sphere_intersect(
     return true;
 }
 
-
-inline bool Sphere::Hit(const Ray& ray, float tMin, float tMax, HitRecord& hitRecord) const
+class Sphere : public Hitable
 {
-    return ray_sphere_intersect(center, radius, ray, tMin, tMax, material, hitRecord);
-}
+public:
+    Sphere() {}
+    Sphere(const Vector& center, float radius, Material* material)
+        : center(center), radius(radius), material(material) {}
 
-inline bool Moving_Sphere::Hit(const Ray& ray, float tMin, float tMax, HitRecord& hitRecord) const
+    bool hit(const Ray& ray, float tMin, float tMax, Hit_Record& hitRecord) const override {
+        return ray_sphere_intersect(center, radius, ray, tMin, tMax, material, hitRecord);
+    }
+
+    Bounding_Box boudning_box(float t0, float t1) const override {
+        return Bounding_Box(center - Vector(radius), center + Vector(radius));
+    }
+
+    Vector center;
+    float radius;
+    Material* material;
+};
+
+class Moving_Sphere : public Hitable
 {
-    Vector center = center0 + ((ray.time - time0) / (time1 - time0)) * (center1 - center0);
-    return ray_sphere_intersect(center, radius, ray, tMin, tMax, material, hitRecord);
-}
+private:
+    Vector get_center(float time) const {
+        return center0 + ((time - time0) / (time1 - time0)) * (center1 - center0);
+    }
+
+public:
+    Moving_Sphere() {}
+    Moving_Sphere(const Vector& center0, const Vector& center1, float time0, float time1,
+        float radius, Material* material)
+        : center0(center0), center1(center1), time0(time0), time1(time1), radius(radius), material(material) {}
+
+    bool hit(const Ray& ray, float tMin, float tMax, Hit_Record& hitRecord) const override {
+        return ray_sphere_intersect(get_center(ray.time), radius, ray, tMin, tMax, material, hitRecord);
+    }
+
+    Bounding_Box boudning_box(float t0, float t1) const override {
+        Bounding_Box box_t0, box_t1;
+
+        Vector center_t0 = get_center(t0);
+        Vector center_t1 = get_center(t1);
+
+        box_t0 = Bounding_Box(center_t0 - Vector(radius), center_t0 + Vector(radius));
+        box_t1 = Bounding_Box(center_t1 - Vector(radius), center_t1 + Vector(radius));
+        return Bounding_Box::get_union(box_t0, box_t1);
+    }
+
+    Vector center0, center1;
+    float time0, time1;
+    float radius;
+    Material* material;
+};

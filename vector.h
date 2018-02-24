@@ -7,6 +7,9 @@ class Vector
 public:
     Vector() {}
 
+    explicit Vector(float v)
+        : x(v), y(v), z(v) {}
+
     Vector(float x, float y, float z)
         : x(x), y(y), z(z) {}
 
