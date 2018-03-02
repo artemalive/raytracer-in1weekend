@@ -45,20 +45,55 @@ public:
         Vector& attenuation, Ray& scatteredRay) const = 0;
 };
 
+class Texture {
+public:
+    virtual Vector value(float u, float v, const Vector& p) const = 0;
+};
+
+class Constant_Texture : public Texture {
+public:
+    Constant_Texture() {}
+    Constant_Texture(Vector c) : color(c) {}
+
+    Vector value(float u, float v, const Vector& p) const override {
+        return color;
+    }
+
+    Vector color;
+};
+
+class Checker_Texture : public Texture {
+public:
+    Checker_Texture() {}
+    Checker_Texture(Texture* t0, Texture* t1) : even(t0), odd(t1) {}
+
+    Vector value(float u, float v, const Vector& p) const override {
+        float sines = std::sin(10 * p.x) * std::sin(10 * p.y) * std::sin(10 * p.z);
+        if (sines < 0.f)
+            return odd->value(u, v, p);
+        else
+            return even->value(u, v, p);
+    }
+
+    Texture* odd;
+    Texture* even;
+};
+
+
 class Lambertian : public Material
 {
 public:
-    Lambertian(const Vector& albedo) : albedo(albedo) {}
+    Lambertian(Texture* albedo) : albedo(albedo) {}
 
-    bool Scatter(RNG& rng, const Ray& ray, const Hit_Record& hitRecord,
+    bool Scatter(RNG& rng, const Ray& ray, const Hit_Record& hit_record,
         Vector& attenuation, Ray& scatteredRay) const override
     {
-        scatteredRay = Ray(hitRecord.p, (hitRecord.normal + RandomPointInUnitSphere(rng)).normalized(), ray.time);
-        attenuation = albedo;
+        scatteredRay = Ray(hit_record.p, (hit_record.normal + RandomPointInUnitSphere(rng)).normalized(), ray.time);
+        attenuation = albedo->value(0, 0, hit_record.p);
         return true;
     }
 
-    Vector albedo;
+    Texture* albedo;
 };
 
 class Metal : public Material

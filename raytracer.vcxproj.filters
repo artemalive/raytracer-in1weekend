@@ -12,6 +12,7 @@
     <ClInclude Include="thread.h" />
     <ClInclude Include="bounding_box.h" />
     <ClInclude Include="bvh.h" />
+    <ClInclude Include="scenes.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />

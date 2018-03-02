@@ -11,6 +11,7 @@
 #include "random.h"
 #include "sphere.h"
 #include "hitable_list.h"
+#include "scenes.h"
 #include "thread.h"
 
 struct Timestamp {
@@ -40,60 +41,6 @@ Vector Color(RNG& rng, const Ray& ray, const Hitable* world, int depth)
 
     float t = 0.5f * (ray.direction.y + 1.0f);
     return (1.0f - t)*Vector(1.0f, 1.0f, 1.0f) + t*Vector(0.5f, 0.7f, 1.0f);
-}
-
-Hitable* RandomScene(float time0, float time1)
-{
-    const int n = 500;
-    Hitable** list = new Hitable*[n + 1];
-    list[0] = new Sphere(Vector(0, -1000, 0), 1000, new Lambertian(Vector(0.5, 0.5, 0.5)));
-
-    RNG rng;
-
-    int i = 1;
-    for (int a = -11; a < 11; a++)
-    {
-        for (int b = -11; b < 11; b++)
-        {
-            float chooseMat = rng.random_float();
-            Vector center(a + 0.9f*rng.random_float(), 0.2f, b + 0.9f*rng.random_float());
-            if ((center - Vector(4, 0.2f, 0)).length() > 0.9f)
-            {
-                if (chooseMat < 0.8f)
-                {
-                    /*list[i++] = new Moving_Sphere(center, center + Vector(0, 0.5f*rng.random_float(), 0), 0.f, 1.f,
-                        0.2f,
-                        new Lambertian(
-                            Vector(rng.random_float()*rng.random_float(), rng.random_float()*rng.random_float(), rng.random_float()*rng.random_float())
-                        )
-                    );*/
-                    list[i++] = new Sphere(center,
-                        0.2f,
-                        new Lambertian(
-                            Vector(rng.random_float()*rng.random_float(), rng.random_float()*rng.random_float(), rng.random_float()*rng.random_float())
-                        )
-                    );
-                }
-                else if (chooseMat < 0.95)
-                {
-                    list[i++] = new Sphere(center, 0.2f, new Metal(
-                        Vector(0.5f*(1 + rng.random_float()), 0.5f*(1 + rng.random_float()), 0.5f*(1 + rng.random_float())), 0.5f*rng.random_float()));
-                }
-                else
-                {
-                    list[i++] = new Sphere(center, 0.2f, new Dielectric(1.5f));
-                }
-            }
-        }
-    }
-
-    list[i++] = new Sphere(Vector(0, 1, 0), 1.0f, new Dielectric(1.5f));
-    list[i++] = new Sphere(Vector(-4, 1, 0), 1.0f, new Lambertian(Vector(0.4f, 0.2f, 0.1f)));
-    list[i++] = new Sphere(Vector(4, 1, 0), 1.0f, new Metal(Vector(0.7f, 0.6f, 0.5f), 0.0));
-
-    return new BVH_Node(rng, list, i, time0, time1);
-
-   // return new HitableList(list, i);
 }
 
 class Render_Rect_Task : public Task {
@@ -163,7 +110,8 @@ int main()
     float time0 = 0.f;
     float time1 = 1.f;
 
-    Hitable* world = RandomScene(time0, time1);
+    //Hitable* world = random_scene(time0, time1);
+    Hitable* world = two_spheres();
 
     Timestamp t;
 
