@@ -1,6 +1,7 @@
 #pragma once
 
 #include "hitable.h"
+#include "perlin.h"
 #include "random.h"
 
 Vector RandomPointInUnitSphere(RNG& rng)
@@ -79,6 +80,21 @@ public:
     Texture* even;
 };
 
+class Noise_Texture : public Texture {
+public:
+    Noise_Texture(RNG& rng, float scale) : noise(rng), scale(scale) {}
+
+    Vector value(float u, float v, const Vector& p) const override {
+        //float f = 0.5f * (noise.noise(p * scale) + 1.f);
+        //float f = noise.turbulence(p * scale);
+        float f = 0.5f * (1.f + std::sin(scale*p.z + 10.f * noise.turbulence(p)));
+
+        return Vector(1) * f;
+    }
+
+    Perlin noise;
+    float scale;
+};
 
 class Lambertian : public Material
 {

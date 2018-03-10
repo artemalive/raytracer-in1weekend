@@ -19,6 +19,15 @@ Hitable* two_spheres() {
     return new HitableList(list, 2);
 }
 
+Hitable* two_perlin_spheres() {
+    RNG rng;
+    Texture* perlin_texture = new Noise_Texture(rng, 5.f);
+    Hitable** list = new Hitable*[2];
+    list[0] = new Sphere(Vector(0, -1000, 0), 1000, new Lambertian(perlin_texture));
+    list[1] = new Sphere(Vector(0, 2, 0), 2, new Lambertian(perlin_texture));
+    return new HitableList(list, 2);
+}
+
 Hitable* random_scene(float time0, float time1)
 {
     const int n = 500;

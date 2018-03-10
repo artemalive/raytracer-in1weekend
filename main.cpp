@@ -111,14 +111,15 @@ int main()
     float time1 = 1.f;
 
     //Hitable* world = random_scene(time0, time1);
-    Hitable* world = two_spheres();
+    //Hitable* world = two_spheres();
+    Hitable* world = two_perlin_spheres();
 
     Timestamp t;
 
     Vector lookFrom(13, 2, 3);
     Vector lookAt(0, 0, 0);
     float distToFocus = 10.0f;
-    float apperture = 0.1f;
+    float apperture = 0.0f; //0.1f;
 
     
     Camera camera(lookFrom, lookAt, Vector(0, 1, 0), 20.0f, float(nx) / float(ny), apperture, distToFocus, time0, time1);

@@ -13,6 +13,7 @@
     <ClInclude Include="bounding_box.h" />
     <ClInclude Include="bvh.h" />
     <ClInclude Include="scenes.h" />
+    <ClInclude Include="perlin.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
