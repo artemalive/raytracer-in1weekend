@@ -11,6 +11,7 @@ struct Hit_Record
     float t;
     Vector p;
     Vector normal;
+    float u, v;
     Material* material;
 };
 

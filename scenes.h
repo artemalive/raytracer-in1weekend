@@ -5,6 +5,9 @@
 #include "material.h"
 #include "sphere.h"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 Hitable* two_spheres() {
     Texture* checker = new Checker_Texture(
         new Constant_Texture(Vector(0.2f, 0.3f, 0.1f)),
@@ -21,10 +24,14 @@ Hitable* two_spheres() {
 
 Hitable* two_perlin_spheres() {
     RNG rng;
+
+    int w, h, c;
+    unsigned char* pixels = stbi_load("texture.jpg", &w, &h, &c, STBI_rgb);
+
     Texture* perlin_texture = new Noise_Texture(rng, 5.f);
     Hitable** list = new Hitable*[2];
     list[0] = new Sphere(Vector(0, -1000, 0), 1000, new Lambertian(perlin_texture));
-    list[1] = new Sphere(Vector(0, 2, 0), 2, new Lambertian(perlin_texture));
+    list[1] = new Sphere(Vector(0, 2, 0), 2, new Lambertian(new Image_Texture(pixels, w, h)/*perlin_texture*/));
     return new HitableList(list, 2);
 }
 

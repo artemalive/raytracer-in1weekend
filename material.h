@@ -96,6 +96,34 @@ public:
     float scale;
 };
 
+class Image_Texture : public Texture {
+public:
+    Image_Texture(unsigned char* pixels, int w, int h)
+        : pixels(pixels),
+        w(w), h(h),
+        wf(static_cast<float>(w)),
+        hf(static_cast<float>(h)) {}
+
+    Vector value(float u, float v, const Vector& p) const override {
+        int i = static_cast<int>(u * wf);
+        int j = static_cast<int>((1 - v) * hf);
+        if (i < 0) i = 0;
+        if (j < 0) j = 0;
+        if (i > w - 1) i = w - 1;
+        if (i > h - 1) j = h - 1;
+
+        int offset = 3*(i + w*j);
+        float r = int(pixels[offset]) / 255.f;
+        float g = int(pixels[offset+1]) / 255.f;
+        float b = int(pixels[offset+2]) / 255.f;
+        return Vector(r, g, b);
+    }
+
+    unsigned char* pixels;
+    int w, h;
+    float wf, hf;
+};
+
 class Lambertian : public Material
 {
 public:
@@ -105,7 +133,7 @@ public:
         Vector& attenuation, Ray& scatteredRay) const override
     {
         scatteredRay = Ray(hit_record.p, (hit_record.normal + RandomPointInUnitSphere(rng)).normalized(), ray.time);
-        attenuation = albedo->value(0, 0, hit_record.p);
+        attenuation = albedo->value(hit_record.u, hit_record.v, hit_record.p);
         return true;
     }
 

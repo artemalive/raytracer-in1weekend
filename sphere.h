@@ -3,6 +3,13 @@
 #include "bounding_box.h"
 #include "hitable.h"
 
+inline void get_sphere_uv(const Vector& p, float& u, float& v) {
+    float phi = std::atan2(p.z, p.x);
+    float theta = std::asin(p.y);
+    u = 1.f - (phi + PI) / (2 * PI);
+    v = (theta + PI / 2) / PI;
+}
+
 inline bool ray_sphere_intersect(
     const Vector& center, float radius, const Ray& ray,
     float tMin, float tMax, Material* material, Hit_Record& hitRecord)
@@ -26,6 +33,7 @@ inline bool ray_sphere_intersect(
     hitRecord.t = t;
     hitRecord.p = ray.PointAtParameter(t);
     hitRecord.normal = (hitRecord.p - center) / radius;
+    get_sphere_uv((hitRecord.p - center) / radius, hitRecord.u, hitRecord.v);
     hitRecord.material = material;
     return true;
 }
