@@ -1,8 +1,8 @@
-#include "../ray.h"
-#include "../shape.h"
-#include "../bounding_box.h"
+#include "ray.h"
+#include "shape.h"
+#include "bounding_box.h"
 
-bool XY_Rect::hit(const Ray& ray, float t_min, float t_max, Hit_Record& hit) const {
+bool XY_Rect::hit(const Ray& ray, float t_min, float t_max, Intersection& hit) const {
     float t = (k - ray.origin.z) / ray.direction.z;
     if (t < t_min || t > t_max)
         return false;
@@ -25,7 +25,7 @@ Bounding_Box XY_Rect::boudning_box(float t0, float t1) const {
     return Bounding_Box(Vector(x0, y0, k - 1e-4f), Vector(x1, y1, k + 1e-4f));
 }
 
-bool XZ_Rect::hit(const Ray& ray, float t_min, float t_max, Hit_Record& hit) const {
+bool XZ_Rect::hit(const Ray& ray, float t_min, float t_max, Intersection& hit) const {
     float t = (k - ray.origin.y) / ray.direction.y;
     if (t < t_min || t > t_max)
         return false;
@@ -48,7 +48,7 @@ Bounding_Box XZ_Rect::boudning_box(float t0, float t1) const {
     return Bounding_Box(Vector(x0, k - 1e-4f, z0), Vector(x1, k + 1e-4f, z1));
 }
 
-bool YZ_Rect::hit(const Ray& ray, float t_min, float t_max, Hit_Record& hit) const {
+bool YZ_Rect::hit(const Ray& ray, float t_min, float t_max, Intersection& hit) const {
     float t = (k - ray.origin.x) / ray.direction.x;
     if (t < t_min || t > t_max)
         return false;

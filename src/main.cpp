@@ -8,6 +8,7 @@
 #include "bvh.h"
 #include "camera.h"
 #include "material.h"
+#include "perlin.h"
 #include "random.h"
 #include "sphere.h"
 #include "hitable_list.h"
@@ -27,13 +28,13 @@ int64_t elapsed_milliseconds(Timestamp timestamp) {
 
 Vector calculate_color(RNG& rng, const Ray& ray, const Hitable* world, int depth)
 {
-    Hit_Record hit;
+    Intersection hit;
     if (world->hit(ray, 0.001f, std::numeric_limits<float>::max(), hit))
     {
         Ray scattered;
         Vector attenuation;
-        Vector emitted = hit.material->Emitted(hit.u, hit.v, hit.p);
-        if (depth < 50 && hit.material->Scatter(rng, ray, hit, attenuation, scattered))
+        Vector emitted = hit.material->emitted(hit.u, hit.v, hit.p);
+        if (depth < 50 && hit.material->scatter(rng, ray, hit, attenuation, scattered))
         {
             return emitted + attenuation * calculate_color(rng, scattered, world, depth + 1);
         }

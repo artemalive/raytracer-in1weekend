@@ -9,7 +9,7 @@ public:
     HitableList() {}
     HitableList(Hitable** list, int listSize) : list(list), listSize(listSize) {}
 
-    bool hit(const Ray& ray, float tMin, float tMax, Hit_Record& hitRecord) const override;
+    bool hit(const Ray& ray, float tMin, float tMax, Intersection& hitRecord) const override;
 
     Bounding_Box boudning_box(float t0, float t1) const override {
         assert(!"should not be called");
@@ -20,9 +20,9 @@ public:
     int listSize;
 };
 
-inline bool HitableList::hit(const Ray& ray, float tMin, float tMax, Hit_Record& hitRecord) const
+inline bool HitableList::hit(const Ray& ray, float tMin, float tMax, Intersection& hitRecord) const
 {
-    Hit_Record tempHit;
+    Intersection tempHit;
     bool hitAnything = false;
     float closestSoFar = tMax;
 

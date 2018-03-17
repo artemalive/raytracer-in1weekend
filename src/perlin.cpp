@@ -1,5 +1,5 @@
-#include "perlin.h"
-#include "../vector.h"
+#include "random.h"
+#include "vector.h"
 
 static Vector* random_vectors;
 static int* permutation_x;

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../random.h"
-#include "../vector.h"
+class RNG;
+class Vector;
 
 void perlin_initialize(RNG& rng);
 float perlin_noise(const Vector& p);

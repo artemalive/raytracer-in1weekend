@@ -1,8 +1,6 @@
 #pragma once
 
-#include "perlin.h"
-#include "../random.h"
-#include "../vector.h"
+#include "vector.h"
 
 class Texture {
 public:

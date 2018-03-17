@@ -1,4 +1,6 @@
+#include "perlin.h"
 #include "texture.h"
+#include <algorithm>
 #include <cassert>
 
 Vector Constant_Texture::value(float, float, const Vector&) const {

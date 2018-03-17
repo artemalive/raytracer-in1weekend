@@ -1,12 +1,13 @@
 #pragma once
 
 #include "shape.h"
+#include "texture.h"
 #include "hitable_list.h"
 #include "material.h"
 #include "sphere.h"
 
 #define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+#include "../third_party//stb_image.h"
 
 Hitable* two_spheres() {
     Texture* checker = new Checker_Texture(

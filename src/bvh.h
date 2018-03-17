@@ -29,14 +29,14 @@ public:
         );
     }
 
-    bool hit(const Ray& ray, float t_min, float t_max, Hit_Record& hit_record) const override {
+    bool hit(const Ray& ray, float t_min, float t_max, Intersection& hit_record) const override {
         if (!box.intersect(ray, t_min, t_max))
             return false;
 
-        Hit_Record left_hit_record;
+        Intersection left_hit_record;
         bool left_hit = left->hit(ray, t_min, t_max, left_hit_record);
 
-        Hit_Record right_hit_record;
+        Intersection right_hit_record;
         bool right_hit = right->hit(ray, t_min, t_max, right_hit_record);
 
         if (!left_hit && !right_hit)
