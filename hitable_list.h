@@ -1,6 +1,6 @@
 #pragma once
 
-#include "hitable.h"
+#include "shape.h"
 #include <cassert>
 
 class HitableList : public Hitable

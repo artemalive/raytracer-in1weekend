@@ -1,7 +1,7 @@
 #pragma once
 
 #include "bounding_box.h"
-#include "hitable.h"
+#include "shape.h"
 #include "random.h"
 #include <algorithm>
 

@@ -25,22 +25,23 @@ int64_t elapsed_milliseconds(Timestamp timestamp) {
     return static_cast<int64_t>(milliseconds);
 }
 
-Vector Color(RNG& rng, const Ray& ray, const Hitable* world, int depth)
+Vector calculate_color(RNG& rng, const Ray& ray, const Hitable* world, int depth)
 {
-    Hit_Record hitRecord;
-    if (world->hit(ray, 0.001f, std::numeric_limits<float>::max(), hitRecord))
+    Hit_Record hit;
+    if (world->hit(ray, 0.001f, std::numeric_limits<float>::max(), hit))
     {
         Ray scattered;
         Vector attenuation;
-        if (depth < 50 && hitRecord.material->Scatter(rng, ray, hitRecord, attenuation, scattered))
+        Vector emitted = hit.material->Emitted(hit.u, hit.v, hit.p);
+        if (depth < 50 && hit.material->Scatter(rng, ray, hit, attenuation, scattered))
         {
-            return attenuation * Color(rng, scattered, world, depth + 1);
+            return emitted + attenuation * calculate_color(rng, scattered, world, depth + 1);
         }
-        return Vector(0, 0, 0);
+        else
+            return emitted;
     }
-
-    float t = 0.5f * (ray.direction.y + 1.0f);
-    return (1.0f - t)*Vector(1.0f, 1.0f, 1.0f) + t*Vector(0.5f, 0.7f, 1.0f);
+    else
+        return Vector(0);
 }
 
 class Render_Rect_Task : public Task {
@@ -75,11 +76,16 @@ public:
                     float v = (float(j) + rng.random_float()) / float(image_height);
 
                     Ray ray = camera->get_ray(rng, u, v);
-                    color += Color(rng, ray, world, 0);
+                    color += calculate_color(rng, ray, world, 0);
                 }
 
                 color /= float(sample_count);
+
+                color[0] = clamp(color[0], 0, 1);
+                color[1] = clamp(color[1], 0, 1);
+                color[2] = clamp(color[2], 0, 1);
                 color = Vector(std::sqrt(color[0]), std::sqrt(color[1]), std::sqrt(color[2]));
+                
                 int ir = static_cast<int>(255.99 * color[0]);
                 int ig = static_cast<int>(255.99 * color[1]);
                 int ib = static_cast<int>(255.99 * color[2]);
@@ -107,22 +113,25 @@ int main()
 
     std::cout << "P3\n" << nx << " " << ny << "\n255\n";
 
+    RNG rng;
+    perlin_initialize(rng);
+
     float time0 = 0.f;
     float time1 = 1.f;
 
     //Hitable* world = random_scene(time0, time1);
     //Hitable* world = two_spheres();
-    Hitable* world = two_perlin_spheres();
+    Hitable* world = cornell_box();
 
     Timestamp t;
 
-    Vector lookFrom(13, 2, 3);
-    Vector lookAt(0, 0, 0);
+    Vector lookFrom(278, 278, -800);
+    Vector lookAt(278, 278, 0);
     float distToFocus = 10.0f;
     float apperture = 0.0f; //0.1f;
-
+    float vfov = 40.0f;
     
-    Camera camera(lookFrom, lookAt, Vector(0, 1, 0), 20.0f, float(nx) / float(ny), apperture, distToFocus, time0, time1);
+    Camera camera(lookFrom, lookAt, Vector(0, 1, 0), vfov, float(nx) / float(ny), apperture, distToFocus, time0, time1);
 
     std::vector<std::array<int, 3>> result(nx * ny);
     int size = 32;

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "hitable.h"
+#include "shape.h"
 #include "hitable_list.h"
 #include "material.h"
 #include "sphere.h"
@@ -23,16 +23,47 @@ Hitable* two_spheres() {
 }
 
 Hitable* two_perlin_spheres() {
-    RNG rng;
-
     int w, h, c;
     unsigned char* pixels = stbi_load("texture.jpg", &w, &h, &c, STBI_rgb);
 
-    Texture* perlin_texture = new Noise_Texture(rng, 5.f);
+    Texture* perlin_texture = new Noise_Texture(5.f);
     Hitable** list = new Hitable*[2];
     list[0] = new Sphere(Vector(0, -1000, 0), 1000, new Lambertian(perlin_texture));
     list[1] = new Sphere(Vector(0, 2, 0), 2, new Lambertian(new Image_Texture(pixels, w, h)/*perlin_texture*/));
     return new HitableList(list, 2);
+}
+
+Hitable* simple_light() {
+    int w, h, c;
+    unsigned char* pixels = stbi_load("texture.jpg", &w, &h, &c, STBI_rgb);
+    Texture* image_texture = new Image_Texture(pixels, w, h);
+
+    Texture* perlin_texture = new Noise_Texture(4.f);
+
+    Hitable** list = new Hitable*[4];
+    list[0] = new Sphere(Vector(0, -1000, 0), 1000, new Lambertian(perlin_texture));
+    list[1] = new Sphere(Vector(0, 2, 0), 2, new Lambertian(image_texture));
+    list[2] = new Sphere(Vector(0, 7, -1), 2, new Diffuse_Light(new Constant_Texture(Vector(4, 4, 4))));
+    list[3] = new XY_Rect(3, 5, 1, 3, -2, new Diffuse_Light(new Constant_Texture(Vector(4, 4, 4))));
+    return new HitableList(list, 4);
+}
+
+Hitable* cornell_box() {
+    Hitable** list = new Hitable*[6];
+    
+    Material* red = new Lambertian(new Constant_Texture(Vector(0.65f, 0.05f, 0.05f)));
+    Material* white = new Lambertian(new Constant_Texture(Vector(0.73f, 0.73f, 0.73f)));
+    Material* green = new Lambertian(new Constant_Texture(Vector(0.12f, 0.45f, 0.15f)));
+    Material* light = new Diffuse_Light(new Constant_Texture(Vector(15, 15, 15)));
+
+    list[0] = new Flip_Normals(new YZ_Rect(0, 555, 0, 555, 555, green));
+    list[1] = new YZ_Rect(0, 555, 0, 555, 0, red);
+    list[2] = new XZ_Rect(213, 343, 227, 332, 554, light);
+    list[3] = new Flip_Normals(new XZ_Rect(0, 555, 0, 555, 555, white));
+    list[4] = new XZ_Rect(0, 555, 0, 555, 0, white);
+    list[5] = new Flip_Normals(new XY_Rect(0, 555, 0, 555, 555, white));
+
+    return new HitableList(list, 6);
 }
 
 Hitable* random_scene(float time0, float time1)

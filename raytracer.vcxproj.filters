@@ -2,7 +2,6 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClInclude Include="ray.h" />
-    <ClInclude Include="hitable.h" />
     <ClInclude Include="sphere.h" />
     <ClInclude Include="hitable_list.h" />
     <ClInclude Include="camera.h" />
@@ -13,10 +12,15 @@
     <ClInclude Include="bounding_box.h" />
     <ClInclude Include="bvh.h" />
     <ClInclude Include="scenes.h" />
-    <ClInclude Include="perlin.h" />
+    <ClInclude Include="src\texture.h" />
+    <ClInclude Include="src\perlin.h" />
+    <ClInclude Include="shape.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="thread.cpp" />
+    <ClCompile Include="src\texture.cpp" />
+    <ClCompile Include="src\perlin.cpp" />
+    <ClCompile Include="src\shape.cpp" />
   </ItemGroup>
 </Project>

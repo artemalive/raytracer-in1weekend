@@ -22,19 +22,23 @@
     <ClInclude Include="bounding_box.h" />
     <ClInclude Include="bvh.h" />
     <ClInclude Include="camera.h" />
-    <ClInclude Include="hitable.h" />
+    <ClInclude Include="shape.h" />
     <ClInclude Include="hitable_list.h" />
     <ClInclude Include="material.h" />
-    <ClInclude Include="perlin.h" />
     <ClInclude Include="random.h" />
     <ClInclude Include="ray.h" />
     <ClInclude Include="scenes.h" />
     <ClInclude Include="sphere.h" />
+    <ClInclude Include="src\perlin.h" />
+    <ClInclude Include="src\texture.h" />
     <ClInclude Include="thread.h" />
     <ClInclude Include="vector.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="src\perlin.cpp" />
+    <ClCompile Include="src\shape.cpp" />
+    <ClCompile Include="src\texture.cpp" />
     <ClCompile Include="thread.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

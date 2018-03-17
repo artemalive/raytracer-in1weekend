@@ -1,13 +1,25 @@
 #pragma once
 
 #include "bounding_box.h"
-#include "hitable.h"
+#include "shape.h"
+#include <cassert>
+
+float clamp(float value, float min, float max) {
+    if (value < min)
+        return min;
+    else if (value > max)
+        return max;
+    else
+        return value;
+}
 
 inline void get_sphere_uv(const Vector& p, float& u, float& v) {
     float phi = std::atan2(p.z, p.x);
-    float theta = std::asin(p.y);
+    float theta = std::asin(clamp(p.y, -1.f, 1.f));
     u = 1.f - (phi + PI) / (2 * PI);
     v = (theta + PI / 2) / PI;
+    assert(!std::isnan(u));
+    assert(!std::isnan(v));
 }
 
 inline bool ray_sphere_intersect(

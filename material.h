@@ -1,8 +1,9 @@
 #pragma once
 
-#include "hitable.h"
-#include "perlin.h"
+#include "shape.h"
+#include "src/perlin.h"
 #include "random.h"
+#include "src/texture.h"
 
 Vector RandomPointInUnitSphere(RNG& rng)
 {
@@ -44,84 +45,10 @@ class Material
 public:
     virtual bool Scatter(RNG& rng, const Ray& ray, const Hit_Record& hit_record,
         Vector& attenuation, Ray& scatteredRay) const = 0;
-};
 
-class Texture {
-public:
-    virtual Vector value(float u, float v, const Vector& p) const = 0;
-};
-
-class Constant_Texture : public Texture {
-public:
-    Constant_Texture() {}
-    Constant_Texture(Vector c) : color(c) {}
-
-    Vector value(float u, float v, const Vector& p) const override {
-        return color;
+    virtual Vector Emitted(float u, float v, const Vector& p) const {
+        return Vector(0);
     }
-
-    Vector color;
-};
-
-class Checker_Texture : public Texture {
-public:
-    Checker_Texture() {}
-    Checker_Texture(Texture* t0, Texture* t1) : even(t0), odd(t1) {}
-
-    Vector value(float u, float v, const Vector& p) const override {
-        float sines = std::sin(10 * p.x) * std::sin(10 * p.y) * std::sin(10 * p.z);
-        if (sines < 0.f)
-            return odd->value(u, v, p);
-        else
-            return even->value(u, v, p);
-    }
-
-    Texture* odd;
-    Texture* even;
-};
-
-class Noise_Texture : public Texture {
-public:
-    Noise_Texture(RNG& rng, float scale) : noise(rng), scale(scale) {}
-
-    Vector value(float u, float v, const Vector& p) const override {
-        //float f = 0.5f * (noise.noise(p * scale) + 1.f);
-        //float f = noise.turbulence(p * scale);
-        float f = 0.5f * (1.f + std::sin(scale*p.z + 10.f * noise.turbulence(p)));
-
-        return Vector(1) * f;
-    }
-
-    Perlin noise;
-    float scale;
-};
-
-class Image_Texture : public Texture {
-public:
-    Image_Texture(unsigned char* pixels, int w, int h)
-        : pixels(pixels),
-        w(w), h(h),
-        wf(static_cast<float>(w)),
-        hf(static_cast<float>(h)) {}
-
-    Vector value(float u, float v, const Vector& p) const override {
-        int i = static_cast<int>(u * wf);
-        int j = static_cast<int>((1 - v) * hf);
-        if (i < 0) i = 0;
-        if (j < 0) j = 0;
-        if (i > w - 1) i = w - 1;
-        if (i > h - 1) j = h - 1;
-
-        int offset = 3*(i + w*j);
-        float r = int(pixels[offset]) / 255.f;
-        float g = int(pixels[offset+1]) / 255.f;
-        float b = int(pixels[offset+2]) / 255.f;
-        return Vector(r, g, b);
-    }
-
-    unsigned char* pixels;
-    int w, h;
-    float wf, hf;
 };
 
 class Lambertian : public Material
@@ -213,4 +140,21 @@ public:
     }
 
     float refractionIndex;
+};
+
+class Diffuse_Light : public Material {
+public:
+    Diffuse_Light(Texture* emit) : emit(emit) {}
+
+    bool Scatter(RNG& rng, const Ray& ray, const Hit_Record& hitRecord,
+        Vector& attenuation, Ray& scatteredRay) const override
+    {
+        return false;
+    }
+
+    Vector Emitted(float u, float v, const Vector& p) const override {
+        return emit->value(u, v, p);
+    }
+
+    Texture* emit;
 };
