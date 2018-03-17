@@ -50,7 +50,7 @@ Hitable* simple_light() {
 }
 
 Hitable* cornell_box() {
-    Hitable** list = new Hitable*[6];
+    Hitable** list = new Hitable*[8];
     
     Material* red = new Lambertian(new Constant_Texture(Vector(0.65f, 0.05f, 0.05f)));
     Material* white = new Lambertian(new Constant_Texture(Vector(0.73f, 0.73f, 0.73f)));
@@ -64,7 +64,19 @@ Hitable* cornell_box() {
     list[4] = new XZ_Rect(0, 555, 0, 555, 0, white);
     list[5] = new Flip_Normals(new XY_Rect(0, 555, 0, 555, 555, white));
 
-    return new HitableList(list, 6);
+    list[6] = new Translate(
+                    new Rotate_Y(
+                        new Box(Vector(0), Vector(165, 165, 165), white),
+                        -18),
+                    Vector(130, 0, 65));
+
+    list[7] = new Translate(
+                new Rotate_Y(
+                    new Box(Vector(0), Vector(165, 330, 165), white),
+                    15),
+                Vector(265, 0, 295));
+
+    return new HitableList(list, 8);
 }
 
 Hitable* random_scene(float time0, float time1)

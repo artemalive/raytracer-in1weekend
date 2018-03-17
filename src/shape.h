@@ -76,3 +76,38 @@ public:
 
     Hitable* hitable;
 };
+
+class Box : public Hitable {
+public:
+    Box(const Vector& p0, const Vector& p1, Material* material);
+    bool hit(const Ray& ray, float t_min, float t_max, Intersection& hit) const override;
+    Bounding_Box boudning_box(float t0, float t1) const override;
+
+private:
+    Vector pmin, pmax;
+    Hitable* list_ptr;
+};
+
+class Translate : public Hitable {
+public:
+    Translate(Hitable* shape, const Vector& translation) : shape(shape), translation(translation) {}
+    bool hit(const Ray& ray, float t_min, float t_max, Intersection& hit) const override;
+    Bounding_Box boudning_box(float t0, float t1) const override;
+
+private:
+    Hitable* shape;
+    Vector translation;
+};
+
+class Rotate_Y : public Hitable {
+public:
+    Rotate_Y(Hitable* p, float angle);
+    bool hit(const Ray& ray, float t_min, float t_max, Intersection& hit) const override;
+    Bounding_Box boudning_box(float t0, float t1) const override;
+
+private:
+    Hitable* shape;
+    float sin_theta;
+    float cos_theta;
+    Bounding_Box box;
+};

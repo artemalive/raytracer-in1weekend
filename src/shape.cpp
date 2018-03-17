@@ -1,3 +1,5 @@
+#include "common.h"
+#include "hitable_list.h"
 #include "ray.h"
 #include "shape.h"
 #include "bounding_box.h"
@@ -69,4 +71,104 @@ bool YZ_Rect::hit(const Ray& ray, float t_min, float t_max, Intersection& hit) c
 
 Bounding_Box YZ_Rect::boudning_box(float t0, float t1) const {
     return Bounding_Box(Vector(k - 1e-4f, y0, z0), Vector(k + 1e-4f, y1, z1));
+}
+
+Box::Box(const Vector& p0, const Vector& p1, Material* material)
+    : pmin(p0)
+    , pmax(p1)
+{
+    Hitable** list = new Hitable*[6];
+    list[0] = new XY_Rect(p0.x, p1.x, p0.y, p1.y, p1.z, material);
+    list[1] = new Flip_Normals(new XY_Rect(p0.x, p1.x, p0.y, p1.y, p0.z, material));
+    list[2] = new XZ_Rect(p0.x, p1.x, p0.z, p1.z, p1.y, material);
+    list[3] = new Flip_Normals(new XZ_Rect(p0.x, p1.x, p0.z, p1.z, p0.y, material));
+    list[4] = new YZ_Rect(p0.y, p1.y, p0.z, p1.z, p1.x, material);
+    list[5] = new Flip_Normals(new YZ_Rect(p0.y, p1.y, p0.z, p1.z, p0.x, material));
+    list_ptr = new HitableList(list, 6);
+}
+
+bool Box::hit(const Ray& ray, float t_min, float t_max, Intersection& hit) const {
+    return list_ptr->hit(ray, t_min, t_max, hit);
+}
+
+Bounding_Box Box::boudning_box(float t0, float t1) const {
+    return Bounding_Box(pmin, pmax);
+}
+
+bool Translate::hit(const Ray& ray, float t_min, float t_max, Intersection& hit) const {
+    Ray translated_ray(ray.origin - translation, ray.direction, ray.time);
+    if (shape->hit(translated_ray, t_min, t_max, hit)) {
+        hit.p += translation;
+        return true;
+    }
+    return false;
+}
+
+Bounding_Box Translate::boudning_box(float t0, float t1) const {
+    auto bounds = shape->boudning_box(t0, t1);
+    bounds.min_point += translation;
+    bounds.max_point += translation;
+    return bounds;
+}
+
+Rotate_Y::Rotate_Y(Hitable* p, float angle)
+    : shape(p)
+{
+    float radians = (PI / 180.f) * angle;
+    sin_theta = std::sin(radians);
+    cos_theta = std::cos(radians);
+
+    for (int i = 0; i < 2; i++) {
+        for (int j = 0; j < 2; j++) {
+            for (int k = 0; k < 2; k++) {
+                float x = i * box.max_point.x + (1 - i) * box.min_point.x;
+                float y = j * box.max_point.y + (1 - j) * box.min_point.y;
+                float z = k * box.max_point.z + (1 - k) * box.min_point.z;
+
+                float new_x = cos_theta * x + sin_theta * z;
+                float new_z = -sin_theta * x + cos_theta * z;
+
+                Vector tester(new_x, y, new_z);
+                for (int c = 0; c < 3; c++) {
+                    if (tester[c] > box.max_point[c])
+                        box.max_point[c] = tester[c];
+                    if (tester[c] < box.min_point[c])
+                        box.min_point[c] = tester[c];
+                }
+            }
+        }
+    }
+}
+
+bool Rotate_Y::hit(const Ray& ray, float t_min, float t_max, Intersection& hit) const {
+    Vector o = ray.origin;
+    Vector d = ray.direction;
+
+    o[0] = cos_theta * ray.origin[0] - sin_theta * ray.origin[2];
+    o[2] = sin_theta * ray.origin[0] + cos_theta * ray.origin[2];
+
+    d[0] = cos_theta * ray.direction[0] - sin_theta * ray.direction[2];
+    d[2] = sin_theta * ray.direction[0] + cos_theta * ray.direction[2];
+
+    Ray rotated_ray(o, d, ray.time);
+
+    if (shape->hit(rotated_ray, t_min, t_max, hit)) {
+        Vector p = hit.p;
+        Vector n = hit.normal;
+
+        p[0] = cos_theta * hit.p[0] + sin_theta * hit.p[2];
+        p[2] = -sin_theta * hit.p[0] + cos_theta * hit.p[2];
+
+        n[0] = cos_theta * hit.normal[0] + sin_theta * hit.normal[2];
+        n[2] = -sin_theta * hit.normal[0] + cos_theta * hit.normal[2];
+
+        hit.p = p;
+        hit.normal = n;
+        return true;
+    }
+    return false;
+}
+
+Bounding_Box Rotate_Y::boudning_box(float t0, float t1) const {
+    return box;
 }
