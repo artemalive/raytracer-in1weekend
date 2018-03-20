@@ -16,9 +16,9 @@ Vector Checker_Texture::value(float u, float v, const Vector& p) const {
 }
 
 Vector Noise_Texture::value(float u, float v, const Vector& p) const {
-    //float f = 0.5f * (noise.noise(p * scale) + 1.f);
-    //float f = noise.turbulence(p * scale);
-    float f = 0.5f * (1.f + std::sin(scale*p.z + 10.f * perlin_turbulence(p)));
+    //float f = 0.5f * (perlin_noise(p * scale) + 1.f);
+    //float f = perlin_turbulence(p * scale);
+    float f = 0.5f * (1.f + std::sin(scale*p.x + 5.f * perlin_turbulence(scale*p)));
     return Vector(1) * f;
 }
 

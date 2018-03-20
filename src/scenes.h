@@ -170,3 +170,67 @@ Hitable* random_scene(float time0, float time1)
 
    // return new HitableList(list, i);
 }
+
+Hitable* final_scene(RNG& rng) {
+    int nb = 20;
+    Hitable** list = new Hitable*[30];
+    Hitable** boxlist = new Hitable*[10000];
+    Hitable** boxlist2 = new Hitable*[10000];
+    Material* white = new Lambertian(new Constant_Texture(Vector(0.73f)));
+    Material* ground = new Lambertian(new Constant_Texture(Vector(0.48f, 0.83f, 0.53f)));
+    int b = 0;
+
+    for (int i = 0; i < nb; i++) {
+        for (int j = 0; j < nb; j++) {
+            float w = 100;
+            float x0 = -1000 + i*w;
+            float z0 = -1000 + j*w;
+            float y0 = 0;
+            float x1 = x0 + w;
+            float y1 = 100 * (rng.random_float() + 0.01f);
+            float z1 = z0 + w;
+            boxlist[b++] = new Box(Vector(x0, y0, z0), Vector(x1, y1, z1), ground);
+        }
+    }
+
+    int l = 0;
+
+    list[l++] = new BVH_Node(rng, boxlist, b, 0, 1);
+
+    Material* light = new Diffuse_Light(new Constant_Texture(Vector(7)));
+    list[l++] = new XZ_Rect(123, 423, 147, 412, 554, light);
+
+    Vector center(400, 400, 200);
+    list[l++] = new Moving_Sphere(center, center + Vector(30, 0, 0), 0, 1, 50,
+        new Lambertian(new Constant_Texture(Vector(0.7f, 0.3f, 0.1f))));
+
+    list[l++] = new Sphere(Vector(260, 150, 45), 50, new Dielectric(1.5f));
+    list[l++] = new Sphere(Vector(0, 150, 145), 50, new Metal(Vector(0.8f, 0.8f, 0.9f), 10.f));
+
+    Hitable* boundary = new Sphere(Vector(360, 150, 145), 70, new Dielectric(1.5f));
+    list[l++] = boundary;
+    list[l++] = new Constant_Medium(boundary, 0.2f, new Constant_Texture(Vector(0.2f, 0.4f, 0.9f)));
+
+    boundary = new Sphere(Vector(0), 5000, new Dielectric(1.5));
+    list[l++] = new Constant_Medium(boundary, 1e-4f, new Constant_Texture(Vector(1)));
+
+    int nx, ny, nn;
+    unsigned char* tex_data = stbi_load("texture.jpg", &nx, &ny, &nn, STBI_rgb);
+    Material* mat = new Lambertian(new Image_Texture(tex_data, nx, ny));
+    list[l++] = new Sphere(Vector(400, 200, 400), 100, mat);
+
+    Texture* perlin_tex = new Noise_Texture(0.1f);
+    list[l++] = new Sphere(Vector(220, 280, 300), 80, new Lambertian(perlin_tex));
+
+    int ns = 1000;
+    for (int j = 0; j < ns; j++) {
+        boxlist2[j] = new Sphere(
+            Vector(165.f * rng.random_float(),
+                   165.f * rng.random_float(),
+                   165.f * rng.random_float()),
+            10.f, white);
+    }
+    list[l++] = new Translate(new Rotate_Y(new BVH_Node(rng, boxlist2, ns, 0, 1), 15.f), Vector(-100, 270, 395));
+
+    return new HitableList(list, l);
+}

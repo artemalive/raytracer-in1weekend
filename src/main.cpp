@@ -110,7 +110,7 @@ int main()
 {
     const int nx = 1280;
     const int ny = 720;
-    const int ns = 16;
+    const int ns = 64;
 
     std::cout << "P3\n" << nx << " " << ny << "\n255\n";
 
@@ -123,11 +123,12 @@ int main()
     //Hitable* world = random_scene(time0, time1);
     //Hitable* world = two_spheres();
     //Hitable* world = cornell_box();
-    Hitable* world = cornell_smoke(rng);
+    //Hitable* world = cornell_smoke(rng);
+    Hitable* world = final_scene(rng);
 
     Timestamp t;
 
-    Vector lookFrom(278, 278, -800);
+    Vector lookFrom(478, 278, -600);
     Vector lookAt(278, 278, 0);
     float distToFocus = 10.0f;
     float apperture = 0.0f; //0.1f;
@@ -149,7 +150,7 @@ int main()
     SYSTEM_INFO si;
 	::GetSystemInfo(&si);
 	int num_processors = si.dwNumberOfProcessors;
-	for (int i = 0; i < num_processors; i++) {
+	for (int i = 0; i < num_processors - 1; i++) {
 		threads.push_back(std::make_unique<Thread>(i));
 	}
 
