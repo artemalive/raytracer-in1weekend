@@ -172,6 +172,8 @@ Hitable* random_scene(float time0, float time1)
 }
 
 Hitable* final_scene(RNG& rng) {
+    rng.random_float();
+
     int nb = 20;
     Hitable** list = new Hitable*[30];
     Hitable** boxlist = new Hitable*[10000];
