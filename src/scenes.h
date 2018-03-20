@@ -79,6 +79,39 @@ Hitable* cornell_box() {
     return new HitableList(list, 8);
 }
 
+Hitable* cornell_smoke(RNG& rng) {
+    Hitable** list = new Hitable*[8];
+    
+    Material* red = new Lambertian(new Constant_Texture(Vector(0.65f, 0.05f, 0.05f)));
+    Material* white = new Lambertian(new Constant_Texture(Vector(0.73f, 0.73f, 0.73f)));
+    Material* green = new Lambertian(new Constant_Texture(Vector(0.12f, 0.45f, 0.15f)));
+    Material* light = new Diffuse_Light(new Constant_Texture(Vector(7, 7, 7)));
+
+    list[0] = new Flip_Normals(new YZ_Rect(0, 555, 0, 555, 555, green));
+    list[1] = new YZ_Rect(0, 555, 0, 555, 0, red);
+    list[2] = new XZ_Rect(113, 443, 127, 432, 554, light);
+    list[3] = new Flip_Normals(new XZ_Rect(0, 555, 0, 555, 555, white));
+    list[4] = new XZ_Rect(0, 555, 0, 555, 0, white);
+    list[5] = new Flip_Normals(new XY_Rect(0, 555, 0, 555, 555, white));
+
+    auto b1 = new Translate(
+                    new Rotate_Y(
+                        new Box(Vector(0), Vector(165, 165, 165), white),
+                        -18),
+                    Vector(130, 0, 65));
+
+    auto b2 = new Translate(
+                new Rotate_Y(
+                    new Box(Vector(0), Vector(165, 330, 165), white),
+                    15),
+                Vector(265, 0, 295));
+
+    list[6] = new Constant_Medium(b1, 0.01f, new Constant_Texture(Vector(1.f)));
+    list[7] = new Constant_Medium(b2, 0.01f, new Constant_Texture(Vector(0.f)));
+
+    return new HitableList(list, 8);
+}
+
 Hitable* random_scene(float time0, float time1)
 {
     const int n = 500;

@@ -110,7 +110,7 @@ int main()
 {
     const int nx = 1280;
     const int ny = 720;
-    const int ns = 2;
+    const int ns = 16;
 
     std::cout << "P3\n" << nx << " " << ny << "\n255\n";
 
@@ -122,7 +122,8 @@ int main()
 
     //Hitable* world = random_scene(time0, time1);
     //Hitable* world = two_spheres();
-    Hitable* world = cornell_box();
+    //Hitable* world = cornell_box();
+    Hitable* world = cornell_smoke(rng);
 
     Timestamp t;
 

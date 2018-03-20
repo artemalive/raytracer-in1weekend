@@ -53,3 +53,12 @@ public:
 private:
     Texture* emit;
 };
+
+class Isotropic : public Material {
+public:
+    Isotropic(Texture *a) : albedo(a) {}
+    bool scatter(RNG& rng, const Ray& ray, const Intersection& hit, Vector& attenuation, Ray& scattered_ray) const override;
+
+private:
+    Texture *albedo;
+};

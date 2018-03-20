@@ -78,3 +78,9 @@ bool Dielectric::scatter(RNG& rng, const Ray& ray, const Intersection& hitRecord
 Vector Diffuse_Light::emitted(float u, float v, const Vector& p) const {
     return emit->value(u, v, p);
 }
+
+bool Isotropic::scatter(RNG& rng, const Ray& ray, const Intersection& hit, Vector& attenuation, Ray& scattered_ray) const {
+    scattered_ray = Ray(hit.p, random_point_in_unit_sphere(rng));
+    attenuation = albedo->value(hit.u, hit.v, hit.p);
+    return true;
+}

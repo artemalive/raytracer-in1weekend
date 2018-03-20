@@ -172,3 +172,36 @@ bool Rotate_Y::hit(const Ray& ray, float t_min, float t_max, Intersection& hit) 
 Bounding_Box Rotate_Y::boudning_box(float t0, float t1) const {
     return box;
 }
+
+thread_local RNG Constant_Medium::rng;
+
+bool Constant_Medium::hit(const Ray& ray, float t_min, float t_max, Intersection& hit) const {
+    Intersection hit1, hit2;
+
+    if (boundary->hit(ray, -FLT_MAX, FLT_MAX, hit1)) {
+        if (boundary->hit(ray, hit1.t + 1e-4f, FLT_MAX, hit2)) {
+            hit1.t = std::max(hit1.t, t_min);
+            hit2.t = std::min(hit2.t, t_max);
+
+            if (hit1.t >= hit2.t)
+                return false;
+            hit1.t = std::max(hit1.t, 0.f);
+
+            float distance_inside_boundary = (hit2.t - hit1.t);
+            float hit_distance = -(1 / density) * std::log(rng.random_float());
+            if (hit_distance < distance_inside_boundary) {
+                hit.t = hit1.t + hit_distance;
+                hit.p = ray.PointAtParameter(hit.t);
+                hit.normal = Vector(1, 0, 0);
+                hit.material = phase_function;
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+Bounding_Box Constant_Medium::boudning_box(float t0, float t1) const {
+    return boundary->boudning_box(t0, t1);
+}
