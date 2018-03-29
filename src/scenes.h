@@ -9,39 +9,39 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "../third_party//stb_image.h"
 
-Hitable* two_spheres() {
+Shape* two_spheres() {
     Texture* checker = new Checker_Texture(
         new Constant_Texture(Vector(0.2f, 0.3f, 0.1f)),
         new Constant_Texture(Vector(0.9f, 0.9f, 0.9f))
     );
 
     int n = 50;
-    Hitable** list = new Hitable*[n+1];
+    Shape** list = new Shape*[n+1];
     list[0] = new Sphere(Vector(0, -10, 0), 10, new Lambertian(checker));
     list[1] = new Sphere(Vector(0, 10, 0), 10, new Lambertian(checker));
 
     return new HitableList(list, 2);
 }
 
-Hitable* two_perlin_spheres() {
+Shape* two_perlin_spheres() {
     int w, h, c;
     unsigned char* pixels = stbi_load("texture.jpg", &w, &h, &c, STBI_rgb);
 
     Texture* perlin_texture = new Noise_Texture(5.f);
-    Hitable** list = new Hitable*[2];
+    Shape** list = new Shape*[2];
     list[0] = new Sphere(Vector(0, -1000, 0), 1000, new Lambertian(perlin_texture));
     list[1] = new Sphere(Vector(0, 2, 0), 2, new Lambertian(new Image_Texture(pixels, w, h)/*perlin_texture*/));
     return new HitableList(list, 2);
 }
 
-Hitable* simple_light() {
+Shape* simple_light() {
     int w, h, c;
     unsigned char* pixels = stbi_load("texture.jpg", &w, &h, &c, STBI_rgb);
     Texture* image_texture = new Image_Texture(pixels, w, h);
 
     Texture* perlin_texture = new Noise_Texture(4.f);
 
-    Hitable** list = new Hitable*[4];
+    Shape** list = new Shape*[4];
     list[0] = new Sphere(Vector(0, -1000, 0), 1000, new Lambertian(perlin_texture));
     list[1] = new Sphere(Vector(0, 2, 0), 2, new Lambertian(image_texture));
     list[2] = new Sphere(Vector(0, 7, -1), 2, new Diffuse_Light(new Constant_Texture(Vector(4, 4, 4))));
@@ -49,8 +49,8 @@ Hitable* simple_light() {
     return new HitableList(list, 4);
 }
 
-Hitable* cornell_box() {
-    Hitable** list = new Hitable*[8];
+Shape* cornell_box() {
+    Shape** list = new Shape*[8];
     
     Material* red = new Lambertian(new Constant_Texture(Vector(0.65f, 0.05f, 0.05f)));
     Material* white = new Lambertian(new Constant_Texture(Vector(0.73f, 0.73f, 0.73f)));
@@ -79,8 +79,8 @@ Hitable* cornell_box() {
     return new HitableList(list, 8);
 }
 
-Hitable* cornell_smoke(RNG& rng) {
-    Hitable** list = new Hitable*[8];
+Shape* cornell_smoke(RNG& rng) {
+    Shape** list = new Shape*[8];
     
     Material* red = new Lambertian(new Constant_Texture(Vector(0.65f, 0.05f, 0.05f)));
     Material* white = new Lambertian(new Constant_Texture(Vector(0.73f, 0.73f, 0.73f)));
@@ -112,10 +112,10 @@ Hitable* cornell_smoke(RNG& rng) {
     return new HitableList(list, 8);
 }
 
-Hitable* random_scene(float time0, float time1)
+Shape* random_scene(float time0, float time1)
 {
     const int n = 500;
-    Hitable** list = new Hitable*[n + 1];
+    Shape** list = new Shape*[n + 1];
 
     Texture* checker = new Checker_Texture(
         new Constant_Texture(Vector(0.2f, 0.3f, 0.1f)),
@@ -171,13 +171,13 @@ Hitable* random_scene(float time0, float time1)
    // return new HitableList(list, i);
 }
 
-Hitable* final_scene(RNG& rng) {
+Shape* final_scene(RNG& rng) {
     rng.random_float();
 
     int nb = 20;
-    Hitable** list = new Hitable*[30];
-    Hitable** boxlist = new Hitable*[10000];
-    Hitable** boxlist2 = new Hitable*[10000];
+    Shape** list = new Shape*[30];
+    Shape** boxlist = new Shape*[10000];
+    Shape** boxlist2 = new Shape*[10000];
     Material* white = new Lambertian(new Constant_Texture(Vector(0.73f)));
     Material* ground = new Lambertian(new Constant_Texture(Vector(0.48f, 0.83f, 0.53f)));
     int b = 0;
@@ -209,7 +209,7 @@ Hitable* final_scene(RNG& rng) {
     list[l++] = new Sphere(Vector(260, 150, 45), 50, new Dielectric(1.5f));
     list[l++] = new Sphere(Vector(0, 150, 145), 50, new Metal(Vector(0.8f, 0.8f, 0.9f), 10.f));
 
-    Hitable* boundary = new Sphere(Vector(360, 150, 145), 70, new Dielectric(1.5f));
+    Shape* boundary = new Sphere(Vector(360, 150, 145), 70, new Dielectric(1.5f));
     list[l++] = boundary;
     list[l++] = new Constant_Medium(boundary, 0.2f, new Constant_Texture(Vector(0.2f, 0.4f, 0.9f)));
 

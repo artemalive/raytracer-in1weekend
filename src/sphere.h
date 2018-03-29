@@ -4,7 +4,7 @@
 #include "bounding_box.h"
 #include "shape.h"
 
-class Sphere : public Hitable {
+class Sphere : public Shape {
 public:
     Sphere(const Vector& center, float radius, Material* material)
         : center(center), radius(radius), material(material) {}
@@ -18,7 +18,7 @@ private:
     Material* material;
 };
 
-class Moving_Sphere : public Hitable {
+class Moving_Sphere : public Shape {
 public:
     Moving_Sphere(const Vector& center0, const Vector& center1, float time0, float time1, float radius, Material* material)
         : center0(center0), center1(center1), time0(time0), time1(time1), radius(radius), material(material) {}

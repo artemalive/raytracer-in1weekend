@@ -77,7 +77,7 @@ Box::Box(const Vector& p0, const Vector& p1, Material* material)
     : pmin(p0)
     , pmax(p1)
 {
-    Hitable** list = new Hitable*[6];
+    Shape** list = new Shape*[6];
     list[0] = new XY_Rect(p0.x, p1.x, p0.y, p1.y, p1.z, material);
     list[1] = new Flip_Normals(new XY_Rect(p0.x, p1.x, p0.y, p1.y, p0.z, material));
     list[2] = new XZ_Rect(p0.x, p1.x, p0.z, p1.z, p1.y, material);
@@ -111,7 +111,7 @@ Bounding_Box Translate::boudning_box(float t0, float t1) const {
     return bounds;
 }
 
-Rotate_Y::Rotate_Y(Hitable* p, float angle)
+Rotate_Y::Rotate_Y(Shape* p, float angle)
     : shape(p)
 {
     float radians = (PI / 180.f) * angle;

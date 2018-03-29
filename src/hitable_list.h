@@ -3,11 +3,11 @@
 #include "shape.h"
 #include <cassert>
 
-class HitableList : public Hitable
+class HitableList : public Shape
 {
 public:
     HitableList() {}
-    HitableList(Hitable** list, int listSize) : list(list), listSize(listSize) {}
+    HitableList(Shape** list, int listSize) : list(list), listSize(listSize) {}
 
     bool hit(const Ray& ray, float tMin, float tMax, Intersection& hitRecord) const override;
 
@@ -16,7 +16,7 @@ public:
         return Bounding_Box();
     }
 
-    Hitable** list;
+    Shape** list;
     int listSize;
 };
 

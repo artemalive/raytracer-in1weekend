@@ -26,7 +26,7 @@ int64_t elapsed_milliseconds(Timestamp timestamp) {
     return static_cast<int64_t>(milliseconds);
 }
 
-Vector calculate_color(RNG& rng, const Ray& ray, const Hitable* world, int depth)
+Vector calculate_color(RNG& rng, const Ray& ray, const Shape* world, int depth)
 {
     Intersection hit;
     if (world->hit(ray, 0.001f, std::numeric_limits<float>::max(), hit))
@@ -48,7 +48,7 @@ Vector calculate_color(RNG& rng, const Ray& ray, const Hitable* world, int depth
 class Render_Rect_Task : public Task {
 public:
 	Render_Rect_Task(
-        const Hitable* world,
+        const Shape* world,
         const Camera* camera,
         int image_width,
         int image_height,
@@ -96,7 +96,7 @@ public:
     }
 
 private:
-    const Hitable* world;
+    const Shape* world;
 	const Camera* camera;
     int image_width, image_height;
     int sample_count;
@@ -120,11 +120,11 @@ int main()
     float time0 = 0.f;
     float time1 = 1.f;
 
-    //Hitable* world = random_scene(time0, time1);
-    //Hitable* world = two_spheres();
-    //Hitable* world = cornell_box();
-    //Hitable* world = cornell_smoke(rng);
-    Hitable* world = final_scene(rng);
+    //Shape* world = random_scene(time0, time1);
+    //Shape* world = two_spheres();
+    //Shape* world = cornell_box();
+    //Shape* world = cornell_smoke(rng);
+    Shape* world = final_scene(rng);
 
     Timestamp t;
 

@@ -5,11 +5,11 @@
 #include "random.h"
 #include <algorithm>
 
-class BVH_Node : public Hitable {
+class BVH_Node : public Shape {
 public:
     BVH_Node(){}
 
-    BVH_Node(RNG& rng, Hitable** hitables, int n, float time0, float time1) {
+    BVH_Node(RNG& rng, Shape** hitables, int n, float time0, float time1) {
         int axis = rng.random_uint32() % 3;
         std::sort(hitables, hitables + n, Compare_Along_Axis(axis));
 
@@ -60,13 +60,13 @@ private:
     struct Compare_Along_Axis {
         int axis;
         Compare_Along_Axis(int axis) : axis(axis) {}
-        bool operator()(const Hitable* a, const Hitable* b) const {
+        bool operator()(const Shape* a, const Shape* b) const {
             return a->boudning_box(0, 0).min_point[axis] < b->boudning_box(0, 0).min_point[axis];
         }
     };
 
 private:
-    Hitable* left;
-    Hitable* right;
+    Shape* left;
+    Shape* right;
     Bounding_Box box;
 };
