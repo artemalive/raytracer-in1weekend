@@ -27,10 +27,12 @@ static float schlick(float cosine, float refractionIndex) {
 }
 
 bool Lambertian::scatter(RNG& rng, const Ray& ray, const Intersection& hit, Vector& albedo, Ray& scattered_ray, float& pdf) const {
-    Vector direction_with_cosine_distribution = (hit.normal + random_point_in_unit_sphere(rng).normalized()).normalized();
-    scattered_ray = Ray(hit.p, direction_with_cosine_distribution, ray.time);
+    Axes axes(hit.normal);
+    Vector scattered_direction = axes.from_local_to_world(random_cosine_direction(rng));
+
+    scattered_ray = Ray(hit.p, scattered_direction, ray.time);
     albedo = this->albedo->value(hit.u, hit.v, hit.p);
-    pdf = dot_product(hit.normal, scattered_ray.direction) / PI;
+    pdf = dot_product(hit.normal, scattered_direction) / PI;
     return true;
 }
 
