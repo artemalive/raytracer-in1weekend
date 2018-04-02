@@ -26,61 +26,68 @@ static float schlick(float cosine, float refractionIndex) {
     return r0 + (1 - r0)*std::pow(1 - cosine, 5);
 }
 
-bool Lambertian::scatter(RNG& rng, const Ray& ray, const Intersection& hit, Vector& attenuation, Ray& scattered_ray) const {
-    scattered_ray = Ray(hit.p, (hit.normal + random_point_in_unit_sphere(rng)).normalized(), ray.time);
-    attenuation = albedo->value(hit.u, hit.v, hit.p);
+bool Lambertian::scatter(RNG& rng, const Ray& ray, const Intersection& hit, Vector& albedo, Ray& scattered_ray, float& pdf) const {
+    Vector direction_with_cosine_distribution = (hit.normal + random_point_in_unit_sphere(rng).normalized()).normalized();
+    scattered_ray = Ray(hit.p, direction_with_cosine_distribution, ray.time);
+    albedo = this->albedo->value(hit.u, hit.v, hit.p);
+    pdf = dot_product(hit.normal, scattered_ray.direction) / PI;
     return true;
 }
 
-bool Metal::scatter(RNG& rng, const Ray& ray, const Intersection& hit, Vector& attenuation, Ray& scattered_ray) const {
-    Vector reflected = reflect(ray.direction, hit.normal);
-    scattered_ray = Ray(hit.p, (reflected + fuzz * random_point_in_unit_sphere(rng)).normalized(), ray.time);
-    attenuation = albedo;
-    return dot_product(scattered_ray.direction, hit.normal) > 0.0f;
+float Lambertian::scattering_pdf(const Ray& ray_in, const Intersection& isect, const Ray& scattered_ray) const {
+    float cosine = std::max(0.f, dot_product(isect.normal, scattered_ray.direction));
+    return cosine / PI;
 }
 
-bool Dielectric::scatter(RNG& rng, const Ray& ray, const Intersection& hitRecord, Vector& attenuation, Ray& scatteredRay) const {
-    Vector outwardNormal;
-    Vector reflected = reflect(ray.direction, hitRecord.normal);
-
-    float n;
-    attenuation = Vector(1.0, 1.0, 1.0);
-    Vector refracted;
-    float reflectProb;
-    float cosine;
-
-    if (dot_product(ray.direction, hitRecord.normal) > 0.0f) {
-        outwardNormal = -hitRecord.normal;
-        n = refraction_index;
-        cosine = dot_product(ray.direction, hitRecord.normal);
-        cosine = sqrt(1 - refraction_index * refraction_index * (1 - cosine * cosine));
-    } else {
-        outwardNormal = hitRecord.normal;
-        n = 1.0f / refraction_index;
-        cosine = -dot_product(ray.direction, hitRecord.normal);
-    }
-
-    if (refract(ray.direction, outwardNormal, n, refracted)) {
-        reflectProb = schlick(cosine, refraction_index);
-    } else {
-        reflectProb = 1.0f;
-    }
-
-    if (rng.random_float() < reflectProb) {
-        scatteredRay = Ray(hitRecord.p, reflected, ray.time);
-    } else {
-        scatteredRay = Ray(hitRecord.p, refracted, ray.time);
-    }
-
-    return true;
-}
+//bool Metal::scatter(RNG& rng, const Ray& ray, const Intersection& hit, Vector& attenuation, Ray& scattered_ray) const {
+//    Vector reflected = reflect(ray.direction, hit.normal);
+//    scattered_ray = Ray(hit.p, (reflected + fuzz * random_point_in_unit_sphere(rng)).normalized(), ray.time);
+//    attenuation = albedo;
+//    return dot_product(scattered_ray.direction, hit.normal) > 0.0f;
+//}
+//
+//bool Dielectric::scatter(RNG& rng, const Ray& ray, const Intersection& hitRecord, Vector& attenuation, Ray& scatteredRay) const {
+//    Vector outwardNormal;
+//    Vector reflected = reflect(ray.direction, hitRecord.normal);
+//
+//    float n;
+//    attenuation = Vector(1.0, 1.0, 1.0);
+//    Vector refracted;
+//    float reflectProb;
+//    float cosine;
+//
+//    if (dot_product(ray.direction, hitRecord.normal) > 0.0f) {
+//        outwardNormal = -hitRecord.normal;
+//        n = refraction_index;
+//        cosine = dot_product(ray.direction, hitRecord.normal);
+//        cosine = sqrt(1 - refraction_index * refraction_index * (1 - cosine * cosine));
+//    } else {
+//        outwardNormal = hitRecord.normal;
+//        n = 1.0f / refraction_index;
+//        cosine = -dot_product(ray.direction, hitRecord.normal);
+//    }
+//
+//    if (refract(ray.direction, outwardNormal, n, refracted)) {
+//        reflectProb = schlick(cosine, refraction_index);
+//    } else {
+//        reflectProb = 1.0f;
+//    }
+//
+//    if (rng.random_float() < reflectProb) {
+//        scatteredRay = Ray(hitRecord.p, reflected, ray.time);
+//    } else {
+//        scatteredRay = Ray(hitRecord.p, refracted, ray.time);
+//    }
+//
+//    return true;
+//}
 
 Vector Diffuse_Light::emitted(float u, float v, const Vector& p) const {
     return emit->value(u, v, p);
 }
 
-bool Isotropic::scatter(RNG& rng, const Ray& ray, const Intersection& hit, Vector& attenuation, Ray& scattered_ray) const {
-    scattered_ray = Ray(hit.p, random_point_in_unit_sphere(rng));
-    attenuation = albedo->value(hit.u, hit.v, hit.p);
-    return true;
-}
+//bool Isotropic::scatter(RNG& rng, const Ray& ray, const Intersection& hit, Vector& attenuation, Ray& scattered_ray) const {
+//    scattered_ray = Ray(hit.p, random_point_in_unit_sphere(rng));
+//    attenuation = albedo->value(hit.u, hit.v, hit.p);
+//    return true;
+//}

@@ -115,18 +115,18 @@ private:
     Bounding_Box box;
 };
 
-class Constant_Medium : public Shape {
-public:
-    Constant_Medium(Shape* boundary, float density, Texture* a)
-        : boundary(boundary), density(density), phase_function(new Isotropic(a)) {}
-
-    bool hit(const Ray& ray, float t_min, float t_max, Intersection& hit) const override;
-    Bounding_Box boudning_box(float t0, float t1) const override;
-
-private:
-    Shape* boundary;
-    float density;
-    Material* phase_function;
-
-    static thread_local RNG rng;
-};
+//class Constant_Medium : public Shape {
+//public:
+//    Constant_Medium(Shape* boundary, float density, Texture* a)
+//        : boundary(boundary), density(density), phase_function(new Isotropic(a)) {}
+//
+//    bool hit(const Ray& ray, float t_min, float t_max, Intersection& hit) const override;
+//    Bounding_Box boudning_box(float t0, float t1) const override;
+//
+//private:
+//    Shape* boundary;
+//    float density;
+//    Material* phase_function;
+//
+//    static thread_local RNG rng;
+//};

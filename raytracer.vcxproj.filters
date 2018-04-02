@@ -27,5 +27,6 @@
     <ClCompile Include="src\common.cpp" />
     <ClCompile Include="src\sphere.cpp" />
     <ClCompile Include="src\material.cpp" />
+    <ClCompile Include="src\scene.cpp" />
   </ItemGroup>
 </Project>

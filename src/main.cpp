@@ -26,17 +26,23 @@ int64_t elapsed_milliseconds(Timestamp timestamp) {
     return static_cast<int64_t>(milliseconds);
 }
 
-Vector calculate_color(RNG& rng, const Ray& ray, const Shape* world, int depth)
+Vector trace_ray(RNG& rng, const Ray& ray, const Shape* world, int depth)
 {
     Intersection hit;
     if (world->hit(ray, 0.001f, std::numeric_limits<float>::max(), hit))
     {
         Ray scattered;
-        Vector attenuation;
+        Vector albedo;
+        float pdf;
+
         Vector emitted = hit.material->emitted(hit.u, hit.v, hit.p);
-        if (depth < 50 && hit.material->scatter(rng, ray, hit, attenuation, scattered))
+
+        if (depth < 50 && hit.material->scatter(rng, ray, hit, albedo, scattered, pdf))
         {
-            return emitted + attenuation * calculate_color(rng, scattered, world, depth + 1);
+            return emitted + 
+                albedo *
+                hit.material->scattering_pdf(ray, hit, scattered) *
+                trace_ray(rng, scattered, world, depth + 1) / pdf;
         }
         else
             return emitted;
@@ -77,7 +83,7 @@ public:
                     float v = (float(j) + rng.random_float()) / float(image_height);
 
                     Ray ray = camera->get_ray(rng, u, v);
-                    color += calculate_color(rng, ray, world, 0);
+                    color += trace_ray(rng, ray, world, 0);
                 }
 
                 color /= float(sample_count);
@@ -112,6 +118,8 @@ int main()
     const int ny = 720;
     const int ns = 64;
 
+    float aspect = float(nx) / float(ny);
+
     std::cout << "P3\n" << nx << " " << ny << "\n255\n";
 
     RNG rng;
@@ -124,17 +132,18 @@ int main()
     //Shape* world = two_spheres();
     //Shape* world = cornell_box();
     //Shape* world = cornell_smoke(rng);
-    Shape* world = final_scene(rng);
+    //Shape* world = final_scene(rng);
+
+    Scene scene = cornell_box(aspect);
 
     Timestamp t;
 
-    Vector lookFrom(478, 278, -600);
-    Vector lookAt(278, 278, 0);
-    float distToFocus = 10.0f;
-    float apperture = 0.0f; //0.1f;
-    float vfov = 40.0f;
-    
-    Camera camera(lookFrom, lookAt, Vector(0, 1, 0), vfov, float(nx) / float(ny), apperture, distToFocus, time0, time1);
+    //Vector lookFrom(478, 278, -600);
+    //Vector lookAt(278, 278, 0);
+    //float distToFocus = 10.0f;
+    //float apperture = 0.0f; //0.1f;
+    //float vfov = 40.0f;
+   
 
     std::vector<std::array<int, 3>> result(nx * ny);
     int size = 32;
@@ -142,7 +151,7 @@ int main()
     std::vector<Render_Rect_Task> tasks;
     for (int y = 0; y < ny; y += size) {
         for (int x = 0; x < nx; x += size) {
-            tasks.push_back(Render_Rect_Task(world, &camera, nx, ny, ns, x, y, std::min(x + size, nx), std::min(y + size, ny), &result));
+            tasks.push_back(Render_Rect_Task(scene.shape, &scene.camera, nx, ny, ns, x, y, std::min(x + size, nx), std::min(y + size, ny), &result));
         }
     }
 
