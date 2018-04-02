@@ -13,7 +13,7 @@ class Material {
 public:
     virtual bool scatter(RNG& rng, const Ray& ray, const Intersection& isect, Vector& albedo, Ray& scattered_ray, float& pdf) const = 0;
     virtual float scattering_pdf(const Ray& ray, const Intersection& isect, const Ray& scattered_ray) const { return 0.f; }
-    virtual Vector emitted(float u, float v, const Vector& p) const { return Vector(0); }
+    virtual Vector emitted(const Ray& ray_in, const Intersection& isect, float u, float v, const Vector& p) const { return Vector(0); }
 };
 
 class Lambertian : public Material {
@@ -50,7 +50,7 @@ public:
     Diffuse_Light(Texture* emit) : emit(emit) {}
 
     bool scatter(RNG& rng, const Ray& ray, const Intersection& hit, Vector& attenuation, Ray& scattered_ray, float& pdf) const override { return false; }
-    Vector emitted(float u, float v, const Vector& p) const override;
+    Vector emitted(const Ray& ray_in, const Intersection& isect, float u, float v, const Vector& p) const override;
 
 private:
     Texture* emit;

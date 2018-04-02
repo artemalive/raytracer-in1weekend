@@ -35,10 +35,24 @@ Vector trace_ray(RNG& rng, const Ray& ray, const Shape* world, int depth)
         Vector albedo;
         float pdf;
 
-        Vector emitted = hit.material->emitted(hit.u, hit.v, hit.p);
+        Vector emitted = hit.material->emitted(ray, hit, hit.u, hit.v, hit.p);
 
         if (depth < 50 && hit.material->scatter(rng, ray, hit, albedo, scattered, pdf))
         {
+
+            Vector on_light = Vector(213 + rng.random_float()*(343-213), 554, 227 + rng.random_float()*(332-227));
+            Vector to_light = on_light - hit.p;
+            float distance_sq = to_light.squared_length();
+            to_light /= std::sqrt(distance_sq);
+            if (dot_product(to_light, hit.normal) < 0)
+                return emitted;
+            float light_area = (343-213)*(332-227);
+            float light_cosine = std::abs(to_light.y);
+            if (light_cosine < 1e-5)
+                return emitted;
+            pdf = distance_sq / (light_cosine * light_area);
+            scattered = Ray(hit.p, to_light, ray.time);
+
             return emitted + 
                 albedo *
                 hit.material->scattering_pdf(ray, hit, scattered) *

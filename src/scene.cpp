@@ -13,7 +13,7 @@ Scene cornell_box(float aspect) {
 
     list[0] = new Flip_Normals(new YZ_Rect(0, 555, 0, 555, 555, green));
     list[1] = new YZ_Rect(0, 555, 0, 555, 0, red);
-    list[2] = new XZ_Rect(213, 343, 227, 332, 554, light);
+    list[2] = new Flip_Normals(new XZ_Rect(213, 343, 227, 332, 554, light));
     list[3] = new Flip_Normals(new XZ_Rect(0, 555, 0, 555, 555, white));
     list[4] = new XZ_Rect(0, 555, 0, 555, 0, white);
     list[5] = new Flip_Normals(new XY_Rect(0, 555, 0, 555, 555, white));

@@ -84,8 +84,11 @@ float Lambertian::scattering_pdf(const Ray& ray_in, const Intersection& isect, c
 //    return true;
 //}
 
-Vector Diffuse_Light::emitted(float u, float v, const Vector& p) const {
-    return emit->value(u, v, p);
+Vector Diffuse_Light::emitted(const Ray& ray_in, const Intersection& isect, float u, float v, const Vector& p) const {
+    if (dot_product(ray_in.direction, isect.normal) < 0.f)
+        return emit->value(u, v, p);
+    else
+        return Vector(0);
 }
 
 //bool Isotropic::scatter(RNG& rng, const Ray& ray, const Intersection& hit, Vector& attenuation, Ray& scattered_ray) const {
