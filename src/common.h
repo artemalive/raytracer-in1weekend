@@ -1,6 +1,7 @@
 #pragma once
 
 #include "vector.h"
+#include <chrono>
 
 class RNG;
 
@@ -14,6 +15,13 @@ inline float clamp(float value, float min, float max) {
     else
         return value;
 }
+
+struct Timestamp {
+    Timestamp() : t(std::chrono::steady_clock::now()) {}
+    const std::chrono::time_point<std::chrono::steady_clock> t;
+};
+
+int64_t elapsed_milliseconds(Timestamp timestamp);
 
 Vector random_point_in_unit_disk(RNG& rng);
 Vector random_point_in_unit_sphere(RNG& rng);

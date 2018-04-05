@@ -2,6 +2,12 @@
 #include "random.h"
 #include "vector.h"
 
+int64_t elapsed_milliseconds(Timestamp timestamp) {
+    auto duration = std::chrono::steady_clock::now() - timestamp.t;
+    auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
+    return static_cast<int64_t>(milliseconds);
+}
+
 Vector random_point_in_unit_disk(RNG& rng) {
     Vector p;
     do {

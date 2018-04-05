@@ -23,6 +23,9 @@ class Shape {
 public:
     virtual bool hit(const Ray& ray, float t_min, float t_max, Intersection& hit_record) const = 0;
     virtual Bounding_Box boudning_box(float t0, float t1) const = 0;
+
+    virtual float pdf_value(const Vector& o, const Vector& v) const { return 0.f; }
+    virtual Vector random_direction(RNG& rng, const Vector& o) const { return Vector(1, 0, 0); }
 };
 
 class XY_Rect : public Shape {
@@ -44,6 +47,26 @@ public:
 
     bool hit(const Ray& ray, float t_min, float t_max, Intersection& hit) const override;
     Bounding_Box boudning_box(float t0, float t1) const override;
+
+    float pdf_value(const Vector& o, const Vector& v) const override {
+        Intersection isect;
+        if (hit(Ray(o, v), 1e-3f, FLT_MAX, isect)) {
+            float area = (x1 - x0) * (z1 - z0);
+            float distance_sq = isect.t * isect.t;
+            float cosine = std::abs(dot_product(v, isect.normal));
+            return distance_sq / (cosine * area);
+        }
+        else
+            return 0.f;
+    }
+    Vector random_direction(RNG& rng, const Vector& o) const override {
+        Vector random_point = Vector(
+            x0 + rng.random_float() * (x1 - x0),
+            k,
+            z0 + rng.random_float() * (z1 - z0)
+        );
+        return (random_point - o).normalized();
+    }
 
     float x0, x1, z0, z1, k;
     Material* material;

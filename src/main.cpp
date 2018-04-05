@@ -15,43 +15,85 @@
 #include "scenes.h"
 #include "thread.h"
 
-struct Timestamp {
-    Timestamp() : t(std::chrono::steady_clock::now()) {}
-    const std::chrono::time_point<std::chrono::steady_clock> t;
+class Pdf {
+public:
+    virtual float value(const Vector& direction) const = 0;
+    virtual Vector generate(RNG& rng) const = 0;
 };
 
-int64_t elapsed_milliseconds(Timestamp timestamp) {
-    auto duration = std::chrono::steady_clock::now() - timestamp.t;
-    auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
-    return static_cast<int64_t>(milliseconds);
-}
+class Cosine_Pdf : public Pdf {
+public:
+    Cosine_Pdf(const Vector& direction)
+    : axes(direction) {}
+
+    float value(const Vector& direction) const override {
+        float cosine = dot_product(direction, axes.e3);
+        if (cosine > 0.f)
+            return cosine / PI;
+        else
+            return 0.f;
+    }
+    Vector generate(RNG& rng) const override {
+        return axes.from_local_to_world(random_cosine_direction(rng));
+    }
+    Axes axes;
+};
+
+class Shape_Pdf : public Pdf {
+public:
+    Shape_Pdf(Shape* shape, const Vector& origin)
+        : shape(shape), origin(origin) {}
+
+    float value(const Vector& direction) const override {
+        return shape->pdf_value(origin, direction);
+    }
+    Vector generate(RNG& rng) const override {
+        return shape->random_direction(rng, origin);
+    }
+
+    Shape* shape;
+    Vector origin;
+};
+
+class Mixture_Pdf : public Pdf {
+public:
+    Mixture_Pdf(Pdf* p0, Pdf* p1)
+        : p0(p0), p1(p1) {}
+
+    float value(const Vector& direction) const override {
+        return 0.5f * p0->value(direction) + 0.5f * p1->value(direction);
+    }
+    Vector generate(RNG& rng) const override {
+        if (rng.random_float() < 0.5f)
+            return p0->generate(rng);
+        else
+            return p1->generate(rng);
+    }
+
+    Pdf* p0;
+    Pdf* p1;
+};
 
 Vector trace_ray(RNG& rng, const Ray& ray, const Shape* world, int depth)
 {
     Intersection hit;
     if (world->hit(ray, 0.001f, std::numeric_limits<float>::max(), hit))
     {
+        Vector emitted = hit.material->emitted(ray, hit, hit.u, hit.v, hit.p);
+
         Ray scattered;
         Vector albedo;
         float pdf;
 
-        Vector emitted = hit.material->emitted(ray, hit, hit.u, hit.v, hit.p);
-
         if (depth < 50 && hit.material->scatter(rng, ray, hit, albedo, scattered, pdf))
         {
+            Shape* light_shape = new XZ_Rect(213, 343, 227, 332, 554, 0);
+            Shape_Pdf p0(light_shape, hit.p);
+            Cosine_Pdf p1(hit.normal);
+            Mixture_Pdf p(&p0, &p1);
 
-            Vector on_light = Vector(213 + rng.random_float()*(343-213), 554, 227 + rng.random_float()*(332-227));
-            Vector to_light = on_light - hit.p;
-            float distance_sq = to_light.squared_length();
-            to_light /= std::sqrt(distance_sq);
-            if (dot_product(to_light, hit.normal) < 0)
-                return emitted;
-            float light_area = (343-213)*(332-227);
-            float light_cosine = std::abs(to_light.y);
-            if (light_cosine < 1e-5)
-                return emitted;
-            pdf = distance_sq / (light_cosine * light_area);
-            scattered = Ray(hit.p, to_light, ray.time);
+            scattered = Ray(hit.p, p.generate(rng), ray.time);
+            pdf = p.value(scattered.direction);
 
             return emitted + 
                 albedo *
