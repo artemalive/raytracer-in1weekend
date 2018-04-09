@@ -16,6 +16,18 @@ public:
         return Bounding_Box();
     }
 
+    float pdf_value(const Vector& o, const Vector& v) const {
+        float sum = 0.f;
+        for (int i = 0; i < listSize; i++)
+            sum += list[i]->pdf_value(o, v);
+        return sum / listSize;
+
+    }
+    Vector random_direction(RNG& rng, const Vector& o) const {
+        int index = static_cast<int>(rng.random_float() * listSize);
+        return list[index]->random_direction(rng, o);
+    }
+
     Shape** list;
     int listSize;
 };

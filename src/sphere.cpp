@@ -46,6 +46,33 @@ Bounding_Box Sphere::boudning_box(float t0, float t1) const {
     return Bounding_Box(center - Vector(radius), center + Vector(radius));
 }
 
+float Sphere::pdf_value(const Vector& o, const Vector& v) const {
+    Intersection isect;
+
+    if (hit(Ray(o, v), 1e-3f, FLT_MAX, isect)) {
+        float cos_theta_max = std::sqrt(1.f - radius*radius/(center-o).squared_length());
+        float solid_angle = 2*PI*(1 - cos_theta_max);
+        return 1.f / solid_angle;
+    } else {
+        return 0;
+    }
+}
+
+Vector random_to_sphere(RNG& rng, float radius, float distance_sq) {
+    float r1 = rng.random_float();
+    float r2 = rng.random_float();
+    float z = 1.f + r2 * (std::sqrt(1.f - radius*radius/distance_sq) - 1.f);
+    float phi = 2*PI*r1;
+    float x = std::cos(phi) * std::sqrt(1 - z*z);
+    float y = std::sin(phi) * std::sqrt(1 - z*z);
+    return Vector(x, y, z);
+}
+
+Vector Sphere::random_direction(RNG& rng, const Vector& o) const {
+    Vector v = center - o;
+    return Axes(v.normalized()).from_local_to_world(random_to_sphere(rng, radius, v.squared_length()));
+}
+
 
 bool Moving_Sphere::hit(const Ray& ray, float tMin, float tMax, Intersection& hitRecord) const {
     return ray_sphere_intersect(get_center(ray.time), radius, ray, tMin, tMax, material, hitRecord);

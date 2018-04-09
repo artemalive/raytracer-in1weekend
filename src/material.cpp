@@ -26,13 +26,10 @@ static float schlick(float cosine, float refractionIndex) {
     return r0 + (1 - r0)*std::pow(1 - cosine, 5);
 }
 
-bool Lambertian::scatter(RNG& rng, const Ray& ray, const Intersection& hit, Vector& albedo, Ray& scattered_ray, float& pdf) const {
-    Axes axes(hit.normal);
-    Vector scattered_direction = axes.from_local_to_world(random_cosine_direction(rng));
-
-    scattered_ray = Ray(hit.p, scattered_direction, ray.time);
-    albedo = this->albedo->value(hit.u, hit.v, hit.p);
-    pdf = dot_product(hit.normal, scattered_direction) / PI;
+bool Lambertian::scatter(RNG& rng, const Ray& ray, const Intersection& hit, Scatter_Info& scatter_info) const {
+    scatter_info.is_specular = false;
+    scatter_info.attenuation = albedo->value(hit.u, hit.v, hit.p);
+    scatter_info.pdf = new Cosine_Pdf(hit.normal);
     return true;
 }
 
@@ -41,13 +38,15 @@ float Lambertian::scattering_pdf(const Ray& ray_in, const Intersection& isect, c
     return cosine / PI;
 }
 
-//bool Metal::scatter(RNG& rng, const Ray& ray, const Intersection& hit, Vector& attenuation, Ray& scattered_ray) const {
-//    Vector reflected = reflect(ray.direction, hit.normal);
-//    scattered_ray = Ray(hit.p, (reflected + fuzz * random_point_in_unit_sphere(rng)).normalized(), ray.time);
-//    attenuation = albedo;
-//    return dot_product(scattered_ray.direction, hit.normal) > 0.0f;
-//}
-//
+bool Metal::scatter(RNG& rng, const Ray& ray, const Intersection& hit, Scatter_Info& scatter_info) const {
+    Vector reflected = reflect(ray.direction, hit.normal);
+    scatter_info.specular_ray = Ray(hit.p, reflected + fuzz * random_point_in_unit_sphere(rng));
+    scatter_info.attenuation = albedo;
+    scatter_info.is_specular = true;
+    scatter_info.pdf = nullptr;
+    return true;
+}
+
 //bool Dielectric::scatter(RNG& rng, const Ray& ray, const Intersection& hitRecord, Vector& attenuation, Ray& scatteredRay) const {
 //    Vector outwardNormal;
 //    Vector reflected = reflect(ray.direction, hitRecord.normal);

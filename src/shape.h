@@ -2,7 +2,6 @@
 
 #include "bounding_box.h"
 #include "vector.h"
-#include "material.h"
 #include "random.h"
 
 class Bounding_Box;

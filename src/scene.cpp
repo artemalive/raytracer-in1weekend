@@ -18,11 +18,15 @@ Scene cornell_box(float aspect) {
     list[4] = new XZ_Rect(0, 555, 0, 555, 0, white);
     list[5] = new Flip_Normals(new XY_Rect(0, 555, 0, 555, 555, white));
 
-    list[6] = new Translate(
+    /*list[6] = new Translate(
                     new Rotate_Y(
                         new Box(Vector(0), Vector(165, 165, 165), white),
                         -18),
-                    Vector(130, 0, 65));
+                    Vector(130, 0, 65));*/
+
+    Material* aluminum = new Metal(Vector(0.8f, 0.85f, 0.88f), 0.f);
+
+     list[6] = new Sphere(Vector(190, 90, 190), 90, aluminum);
 
     list[7] = new Translate(
                 new Rotate_Y(

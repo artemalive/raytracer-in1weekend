@@ -15,90 +15,36 @@
 #include "scenes.h"
 #include "thread.h"
 
-class Pdf {
-public:
-    virtual float value(const Vector& direction) const = 0;
-    virtual Vector generate(RNG& rng) const = 0;
-};
+Shape* light = new XZ_Rect(213, 343, 227, 332, 554, 0);
+Shape* glass_sphere = new Sphere(Vector(190, 90, 190), 90, nullptr);
 
-class Cosine_Pdf : public Pdf {
-public:
-    Cosine_Pdf(const Vector& direction)
-    : axes(direction) {}
+Shape* shapes_to_sample = nullptr;
 
-    float value(const Vector& direction) const override {
-        float cosine = dot_product(direction, axes.e3);
-        if (cosine > 0.f)
-            return cosine / PI;
-        else
-            return 0.f;
-    }
-    Vector generate(RNG& rng) const override {
-        return axes.from_local_to_world(random_cosine_direction(rng));
-    }
-    Axes axes;
-};
-
-class Shape_Pdf : public Pdf {
-public:
-    Shape_Pdf(Shape* shape, const Vector& origin)
-        : shape(shape), origin(origin) {}
-
-    float value(const Vector& direction) const override {
-        return shape->pdf_value(origin, direction);
-    }
-    Vector generate(RNG& rng) const override {
-        return shape->random_direction(rng, origin);
-    }
-
-    Shape* shape;
-    Vector origin;
-};
-
-class Mixture_Pdf : public Pdf {
-public:
-    Mixture_Pdf(Pdf* p0, Pdf* p1)
-        : p0(p0), p1(p1) {}
-
-    float value(const Vector& direction) const override {
-        return 0.5f * p0->value(direction) + 0.5f * p1->value(direction);
-    }
-    Vector generate(RNG& rng) const override {
-        if (rng.random_float() < 0.5f)
-            return p0->generate(rng);
-        else
-            return p1->generate(rng);
-    }
-
-    Pdf* p0;
-    Pdf* p1;
-};
-
-Vector trace_ray(RNG& rng, const Ray& ray, const Shape* world, int depth)
+Vector trace_ray(RNG& rng, const Ray& ray, const Shape* world, Shape* light_shape, int depth)
 {
     Intersection hit;
     if (world->hit(ray, 0.001f, std::numeric_limits<float>::max(), hit))
     {
         Vector emitted = hit.material->emitted(ray, hit, hit.u, hit.v, hit.p);
-
-        Ray scattered;
-        Vector albedo;
-        float pdf;
-
-        if (depth < 50 && hit.material->scatter(rng, ray, hit, albedo, scattered, pdf))
+        Scatter_Info scatter_info;
+        if (depth < 50 && hit.material->scatter(rng, ray, hit, scatter_info))
         {
-            Shape* light_shape = new XZ_Rect(213, 343, 227, 332, 554, 0);
-            Shape_Pdf p0(light_shape, hit.p);
-            Cosine_Pdf p1(hit.normal);
-            Mixture_Pdf p(&p0, &p1);
+            if (scatter_info.is_specular) {
+                return scatter_info.attenuation * trace_ray(rng, scatter_info.specular_ray, world, light_shape, depth + 1);
+            } else {
+                Shape_Pdf plight(light_shape, hit.p);
+                Mixture_Pdf p(&plight, scatter_info.pdf);
 
-            scattered = Ray(hit.p, p.generate(rng), ray.time);
-            pdf = p.value(scattered.direction);
+                Ray scattered = Ray(hit.p, p.generate(rng), ray.time);
+                float pdf = p.value(scattered.direction);
 
-            return emitted + 
-                albedo *
-                hit.material->scattering_pdf(ray, hit, scattered) *
-                trace_ray(rng, scattered, world, depth + 1) / pdf;
+                delete scatter_info.pdf;
+
+                return emitted + 
+                    scatter_info.attenuation *
+                    hit.material->scattering_pdf(ray, hit, scattered) *
+                    trace_ray(rng, scattered, world, light_shape, depth + 1) / pdf;
+            }
         }
         else
             return emitted;
@@ -139,7 +85,7 @@ public:
                     float v = (float(j) + rng.random_float()) / float(image_height);
 
                     Ray ray = camera->get_ray(rng, u, v);
-                    color += trace_ray(rng, ray, world, 0);
+                    color += trace_ray(rng, ray, world, shapes_to_sample, 0);
                 }
 
                 color /= float(sample_count);
@@ -189,6 +135,9 @@ int main()
     //Shape* world = cornell_box();
     //Shape* world = cornell_smoke(rng);
     //Shape* world = final_scene(rng);
+
+    Shape* shapes[2] { light, glass_sphere };
+    shapes_to_sample = new HitableList(shapes, 2);
 
     Scene scene = cornell_box(aspect);
 

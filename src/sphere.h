@@ -11,6 +11,8 @@ public:
 
     bool hit(const Ray& ray, float tMin, float tMax, Intersection& hitRecord) const override;
     Bounding_Box boudning_box(float t0, float t1) const override;
+    float pdf_value(const Vector& o, const Vector& v) const override;
+    Vector random_direction(RNG& rng, const Vector& o) const override;
 
 private:
     Vector center;
